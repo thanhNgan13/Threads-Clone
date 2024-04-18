@@ -1,4 +1,4 @@
-# final_exercises
+# Mobile programming final exam
 
 A new Flutter project.
 
