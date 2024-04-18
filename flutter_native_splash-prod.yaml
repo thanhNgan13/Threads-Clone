@@ -1,0 +1,16 @@
+# flutter_native_splash-prod.yaml
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/images/logo_threads.png
+  branding: assets/images/logo_threads.png
+  color_dark: "#121212"
+  image_dark: assets/images/logo_threads.png
+  branding_dark: assets/images/logo_threads.png
+
+  android_12:
+    image: assets/images/logo_threads.png
+    icon_background_color: "#ffffff"
+    image_dark: assets/images/logo_threads.png
+    icon_background_color_dark: "#121212"
+
+  web: false

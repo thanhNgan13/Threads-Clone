@@ -2,7 +2,7 @@ name: final_exercises
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ">=3.3.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,14 +31,42 @@ dependencies:
   flutter:
     sdk: flutter
 
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  video_player: ^2.8.2
+  font_awesome_flutter: ^10.6.0
+  share: ^2.0.4
+  firebase_core: ^2.25.5
+  firebase_auth: ^4.17.8
+  cloud_firestore: ^4.15.6
+  http: ^1.2.0
+  html: ^0.15.0
+  provider: ^6.1.0
+  webview_flutter: ^4.5.0
+  google_sign_in: ^6.2.1
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+flutter_native_splash:
+  color: "#000000" # Đặt màu nền là màu đen
+  image: assets/images/logo_threads.png
+  color_dark: "#000000"
+  image_dark: assets/images/logo_threads.png
+  android_12:
+    image: assets/images/logo_threads.png
+    color: "#000000"
+    icon_background_color: "#000000"
+  fullscreen: true
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_threads.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -52,16 +80,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
