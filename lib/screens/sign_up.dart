@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -13,6 +15,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final passwordController = TextEditingController();
   final fullNameController = TextEditingController();
   final usernameController = TextEditingController();
+  Future<void> signUp() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+    final fullName = fullNameController.text;
+    final username = usernameController.text;
+    if (email.isEmpty ||
+        password.isEmpty ||
+        fullName.isEmpty ||
+        username.isEmpty) {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                'Error',
+                style: TextStyle(fontSize: 16, color: Colors.red),
+              ),
+              content: Text('Please enter all fields'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                )
+              ],
+            );
+          });
+    } else {
+      try {
+        // Sign up user
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: email, password: password);
+        // Save user details to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'id': userCredential.user!.uid,
+          'fullName': fullName,
+          'username': username,
+          //may be add more fields here
+        });
+        // Navigate to home screen
+        Navigator.pop(context);
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,8 +135,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                  onPressed: () {
-                    print('Sign Up pressed');
+                  onPressed: () async {
+                    await signUp();
                   },
                   child: Text(
                     'Sign Up',
