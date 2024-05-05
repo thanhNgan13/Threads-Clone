@@ -46,6 +46,13 @@ dependencies:
   webview_flutter: ^4.5.0
   google_sign_in: ^6.2.1
   flutter_native_splash: ^2.4.0
+  lottie: ^3.1.0
+  firebase_analytics: ^10.10.4
+  firebase_database: ^10.5.4
+  intl: ^0.19.0
+  shared_preferences: ^2.2.3
+  cached_network_image: ^3.3.1
+  iconsax: ^0.0.8
 
 dev_dependencies:
   flutter_test:
