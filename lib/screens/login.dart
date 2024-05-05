@@ -120,23 +120,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Container(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    print('Login pressed');
-                  },
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                ),
-              ),
-            ),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
