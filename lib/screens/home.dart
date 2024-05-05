@@ -1,18 +1,84 @@
+import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
+import 'package:final_exercises/screens/homepage_widgets/notification_widget.dart';
+import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';
+import 'package:final_exercises/screens/homepage_widgets/search_widget.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
+import '../component/BottomNavItem.dart';
+import 'homepage_widgets/list_post_widget.dart';
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: BodyWidget(),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class BodyWidget extends StatefulWidget {
+  const BodyWidget({super.key});
+
+  @override
+  State<BodyWidget> createState() => _BodyWidgetState();
+}
+
+class _BodyWidgetState extends State<BodyWidget> {
+  int _selectedIndex = 0;
+  final int sizeIcon = 30;
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  final List<Widget> _tabs = [
+    const ListPostWidget(),
+    const SearchWidget(),
+    const NewPostWidget(),
+    const NotificationWidget(),
+    const UserWidget()
+  ];
+
+  final List<BottomNavItem> bottomNavItems = [
+    BottomNavItem(
+      icon: const Icon(
+        Icons.home_outlined,
+        size: 30,
+      ),
+    ),
+    BottomNavItem(
+        icon: const Icon(
+      Icons.search_rounded,
+      size: 30,
+    )),
+    BottomNavItem(icon: const Icon(Icons.newspaper_outlined, size: 30)),
+    BottomNavItem(icon: const Icon(Icons.notifications_outlined, size: 30)),
+    BottomNavItem(icon: const Icon(Icons.person_outline, size: 30))
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Center(
-        child: Text('Home Screen'),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _tabs,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        fixedColor: Color.fromARGB(255, 20, 20, 20),
+        type: BottomNavigationBarType.fixed,
+        unselectedFontSize: 10,
+        selectedFontSize: 10,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: [
+          for (var i = 0; i < bottomNavItems.length; i++)
+            BottomNavigationBarItem(
+              icon: bottomNavItems.elementAt(i).icon,
+              label: bottomNavItems.elementAt(i).label,
+            )
+        ],
       ),
     );
   }
