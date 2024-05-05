@@ -1,4 +1,5 @@
 import 'package:final_exercises/firebase_options.dart';
+import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/login.dart';
 import 'package:final_exercises/views/theme/light_mode.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: lightMode,
       // darkTheme: darkMode,
-      home: const LoginScreen(),
+      home: const HomeScreen(),
     );
   }
 }
