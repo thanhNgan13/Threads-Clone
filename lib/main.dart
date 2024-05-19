@@ -1,5 +1,7 @@
 import 'package:final_exercises/firebase_options.dart';
+import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/login.dart';
+import 'package:final_exercises/views/theme/dark_mode.dart';
 import 'package:final_exercises/views/theme/light_mode.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
