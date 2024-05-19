@@ -1,7 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:final_exercises/models/user.dart';
-import 'package:final_exercises/values/app_styles.dart';
 import 'package:flutter/material.dart';
 
 class SearchWidget extends StatefulWidget {
@@ -12,167 +8,15 @@ class SearchWidget extends StatefulWidget {
 }
 
 class _SearchWidgetState extends State<SearchWidget> {
-  final CollectionReference _usersCollection =
-      FirebaseFirestore.instance.collection('users');
-
-  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-  @override
-  void initState() {
-    super.initState();
-    print(currentUserId);
-  }
-
-  Future<void> followUser(String userId) async {
-    await _usersCollection.doc(currentUserId).update({
-      'following': FieldValue.arrayUnion([userId])
-    });
-
-    await _usersCollection.doc(userId).update({
-      'followers': FieldValue.arrayUnion([currentUserId])
-    });
-  }
-
-  Future<void> unfollowUser(String userId) async {
-    await _usersCollection.doc(currentUserId).update({
-      'following': FieldValue.arrayRemove([userId])
-    });
-
-    await _usersCollection.doc(userId).update({
-      'followers': FieldValue.arrayRemove([currentUserId])
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              Text('Search',
-                  style: AppStyles.h4.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 26,
-                  )),
-              Container(
-                width: double.infinity,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: TextFormField(
-                    decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                )),
-              ),
-              const SizedBox(height: 20),
-              StreamBuilder(
-                  stream: _usersCollection
-                      .where('id', isNotEqualTo: currentUserId)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final users = snapshot.data!.docs
-                        .map((doc) => UserModel(
-                              id: doc['id'],
-                              name: doc['name'],
-                              username: doc['username'],
-                              profileImageUrl: doc['profileImageUrl'],
-                              followers: doc['followers'],
-                              following: doc['following'],
-                            ))
-                        .toList();
-
-                    return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: users.length,
-                        itemBuilder: (context, index) {
-                          final user = users[index];
-                          return SuggestedUserWidget(
-                              user: user,
-                              onFollow: () => followUser(user.id),
-                              onUnfollow: () => unfollowUser(user.id));
-                        });
-                  })
-            ]),
-          ),
-        ),
+      appBar: AppBar(
+        title: const Text('Search'),
       ),
-    );
-  }
-}
-
-class SuggestedUserWidget extends StatefulWidget {
-  const SuggestedUserWidget(
-      {super.key, required this.user, this.onFollow, this.onUnfollow});
-  final UserModel user;
-  final VoidCallback? onFollow;
-  final VoidCallback? onUnfollow;
-  @override
-  State<SuggestedUserWidget> createState() => _SuggestedUserWidgetState();
-}
-
-class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: AssetImage(
-            widget.user.profileImageUrl ?? 'assets/images/logo_threads.png'),
+      body: const Center(
+        child: Text('Search'),
       ),
-      title: Text(widget.user.name,
-          style: AppStyles.h5.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text('@${widget.user.username}', style: AppStyles.h5),
-      trailing: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            }
-            final currentUser = UserModel.fromMap(
-                snapshot.data!.data() as Map<String, dynamic>);
-            final isFollowing = currentUser.following.contains(widget.user.id);
-            return InkWell(
-              onTap: isFollowing ? widget.onUnfollow : widget.onFollow,
-              child: Container(
-                width: 110,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                ),
-                child: isFollowing
-                    ? Text(
-                        'Unfollow',
-                        style: AppStyles.h5.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                        ),
-                      )
-                    : Text(
-                        'Follow',
-                        style: AppStyles.h5.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-              ),
-            );
-          }),
     );
   }
 }
