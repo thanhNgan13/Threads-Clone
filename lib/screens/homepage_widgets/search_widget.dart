@@ -14,12 +14,18 @@ class SearchWidget extends StatefulWidget {
 class _SearchWidgetState extends State<SearchWidget> {
   final CollectionReference _usersCollection =
       FirebaseFirestore.instance.collection('users');
-
+  final searchController = TextEditingController();
+  String searchQuery = '';
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   @override
   void initState() {
     super.initState();
     print(currentUserId);
+    searchController.addListener(() {
+      setState(() {
+        searchQuery = searchController.text;
+      });
+    });
   }
 
   Future<void> followUser(String userId) async {
@@ -40,6 +46,13 @@ class _SearchWidgetState extends State<SearchWidget> {
     await _usersCollection.doc(userId).update({
       'followers': FieldValue.arrayRemove([currentUserId])
     });
+  }
+
+  List<UserModel> filteredUsers(List<UserModel> users, String searchQuery) {
+    return users
+        .where((user) =>
+            user.username.toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
   }
 
   @override
@@ -63,11 +76,12 @@ class _SearchWidgetState extends State<SearchWidget> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: TextFormField(
+                    controller: searchController,
                     decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                )),
+                      hintText: 'Search',
+                      prefixIcon: Icon(Icons.search),
+                      border: InputBorder.none,
+                    )),
               ),
               const SizedBox(height: 20),
               StreamBuilder(
@@ -88,12 +102,12 @@ class _SearchWidgetState extends State<SearchWidget> {
                               following: doc['following'],
                             ))
                         .toList();
-
+                    final _filteredUsers = filteredUsers(users, searchQuery);
                     return ListView.builder(
                         shrinkWrap: true,
-                        itemCount: users.length,
+                        itemCount: _filteredUsers.length,
                         itemBuilder: (context, index) {
-                          final user = users[index];
+                          final user = _filteredUsers[index];
                           return SuggestedUserWidget(
                               user: user,
                               onFollow: () => followUser(user.id),
