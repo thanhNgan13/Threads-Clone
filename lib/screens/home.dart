@@ -1,3 +1,4 @@
+import 'package:final_exercises/screens/composePost/post.dart';
 import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
 import 'package:final_exercises/screens/homepage_widgets/notification_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';
@@ -37,7 +38,7 @@ class _BodyWidgetState extends State<BodyWidget> {
   final List<Widget> _tabs = [
     const ListPostWidget(),
     const SearchWidget(),
-    const NewPostWidget(),
+    const ComposePost(),
     const NotificationWidget(),
     const UserWidget()
   ];
@@ -54,7 +55,7 @@ class _BodyWidgetState extends State<BodyWidget> {
       Icons.search_rounded,
       size: 30,
     )),
-    BottomNavItem(icon: const Icon(Icons.newspaper_outlined, size: 30)),
+    BottomNavItem(icon: const Icon(Icons.edit_outlined, size: 30)),
     BottomNavItem(icon: const Icon(Icons.notifications_outlined, size: 30)),
     BottomNavItem(icon: const Icon(Icons.person_outline, size: 30))
   ];
@@ -66,7 +67,9 @@ class _BodyWidgetState extends State<BodyWidget> {
         children: _tabs,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        fixedColor: Color.fromARGB(255, 20, 20, 20),
+        backgroundColor: Colors.black,
+        fixedColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         unselectedFontSize: 10,
         selectedFontSize: 10,
