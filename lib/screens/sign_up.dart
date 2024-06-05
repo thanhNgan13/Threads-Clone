@@ -18,12 +18,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> signUp() async {
     final email = emailController.text;
     final password = passwordController.text;
-    final fullName = fullNameController.text;
+    final name = fullNameController.text;
     final username = usernameController.text;
-    if (email.isEmpty ||
-        password.isEmpty ||
-        fullName.isEmpty ||
-        username.isEmpty) {
+    if (email.isEmpty || password.isEmpty || name.isEmpty || username.isEmpty) {
       return showDialog(
           context: context,
           builder: (context) {
@@ -54,8 +51,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             .doc(userCredential.user!.uid)
             .set({
           'id': userCredential.user!.uid,
-          'fullName': fullName,
+          'name': name,
           'username': username,
+          'followers': <String>[],
+          'following': <String>[],
+          'profileImageUrl': 'assets/images/logo_threads.png',
+          'biography': '',
           //may be add more fields here
         });
         // Navigate to home screen
@@ -93,6 +94,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.all(10),
             child: TextFormField(
                 controller: passwordController,
+                obscureText: true,
                 decoration: InputDecoration(
                   contentPadding: EdgeInsets.all(10),
                   hintText: 'Enter your password',
