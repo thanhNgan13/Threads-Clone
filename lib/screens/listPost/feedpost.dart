@@ -1,6 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -16,6 +16,18 @@ class FeedPost extends StatefulWidget {
 class _FeedPostState extends State<FeedPost> {
   bool isExpanded = false;
   bool showMoreButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Kiểm tra độ dài của văn bản và cập nhật trạng thái showMoreButton
+    if (widget.postModel.bio != null && widget.postModel.bio!.length > 200) {
+      setState(() {
+        showMoreButton = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -75,20 +87,106 @@ class _FeedPostState extends State<FeedPost> {
                       softWrap: true,
                       style: TextStyle(color: Colors.white),
                     ),
-                    InkWell(
-                      child: Text(
-                        isExpanded ? 'Thu gọn' : 'Xem thêm',
-                        style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
+                    if (showMoreButton)
+                      InkWell(
+                        child: Text(
+                          isExpanded ? 'Thu gọn' : 'Xem thêm',
+                          style: TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            isExpanded = !isExpanded;
+                          });
+                        },
                       ),
-                      onTap: () {
-                        setState(() {
-                          isExpanded = !isExpanded;
-                        });
-                      },
-                    ),
                   ],
                 )),
+            widget.postModel.imagePath == null
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 12,
+                      ),
+                      Column(
+                        children: [
+                          Container(
+                            width: 2,
+                            height: 30,
+                            color: const Color.fromARGB(255, 46, 46, 46),
+                          ),
+                          Container(
+                            height: 5,
+                          ),
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(100),
+                              child: Container(
+                                  height: 15,
+                                  width: 15,
+                                  child: CachedNetworkImage(
+                                    imageUrl: widget
+                                        .postModel.user!.profileImageUrl
+                                        .toString(),
+                                  ))),
+                        ],
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(left: 20, right: 10),
+                          child: widget.postModel.imagePath == null
+                              ? SizedBox.shrink()
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: CachedNetworkImage(
+                                      height: 300,
+                                      width: 330,
+                                      fit: BoxFit.cover,
+                                      imageUrl: widget.postModel.imagePath
+                                          .toString()))),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 10,
+                      ),
+                      Column(
+                        children: [
+                          Container(
+                            width: 2,
+                            height: 300,
+                            color: const Color.fromARGB(255, 46, 46, 46),
+                          ),
+                          Container(
+                            height: 5,
+                          ),
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(100),
+                              child: Container(
+                                  height: 15,
+                                  width: 15,
+                                  child: CachedNetworkImage(
+                                    imageUrl: widget
+                                        .postModel.user!.profileImageUrl
+                                        .toString(),
+                                  ))),
+                        ],
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(left: 48, right: 10),
+                          child: widget.postModel.imagePath == null
+                              ? SizedBox.shrink()
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: CachedNetworkImage(
+                                      height: 300,
+                                      width: 290,
+                                      fit: BoxFit.cover,
+                                      imageUrl: widget.postModel.imagePath
+                                          .toString()))),
+                    ],
+                  ),
             Container(
               height: 10,
             ),

@@ -1,24 +1,22 @@
 // ignore_for_file: unnecessary_null_comparison, unused_element
 import 'dart:io';
-import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
-import 'package:final_exercises/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/post.dart';
 import 'widget/composeBottomIconWidget.dart';
 
 class ComposePost extends StatefulWidget {
-  const ComposePost({
-    Key? key,
-  }) : super(key: key);
+  final VoidCallback navigateToHome;
 
+  ComposePost({Key? key, required this.navigateToHome}) : super(key: key);
   @override
   _ComposePostReplyPageState createState() => _ComposePostReplyPageState();
 }
@@ -76,24 +74,24 @@ class _ComposePostReplyPageState extends State<ComposePost> {
     PostModel postModel = await createPostModel();
     String? postId;
 
-    // if (_file != null) {
-    //   await state.uploadFile(_file!).then((imagePath) async {
-    //     if (imagePath != null) {
-    //       postModel.imagePath = imagePath;
-    //       postId = await state.createPost(postModel);
-    //     }
-    //   });
-    // } else {
-    //   postId = await state.createPost(postModel);
-    // }
+    if (_file != null) {
+      await state.uploadFile(_file!).then((imagePath) async {
+        if (imagePath != null) {
+          postModel.imagePath = imagePath;
+          postId = await state.createPost(postModel);
+        }
+      });
+    } else {
+      postId = await state.createPost(postModel);
+    }
 
-    postId = await state.createPost(postModel);
+    // postId = await state.createPost(postModel);
 
     postModel.key = postId;
     _textEditingController.clear();
-    // setState(() {
-    //   _file = null;
-    // });
+    setState(() {
+      _file = null;
+    });
   }
 
   Widget _entry(
@@ -198,8 +196,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
             color: Colors.white,
           ),
           onPressed: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => SplashPage()));
+            widget.navigateToHome();
           },
         ),
       ),
@@ -220,7 +217,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                 child: Column(
                   children: [
                     Padding(
-                        padding: EdgeInsets.all(14),
+                        padding: EdgeInsets.all(10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -238,7 +235,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                                   height: 6,
                                 ),
                                 Container(
-                                  height: 50,
+                                  height: 100,
                                   width: 2,
                                   color: const Color.fromARGB(255, 87, 87, 87),
                                 ),
@@ -286,9 +283,6 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                                           nums = _textEditingController
                                               .text.length;
                                         });
-                                        // Provider.of<ComposePostState>(context,
-                                        //         listen: false)
-                                        //     .onDescriptionChanged(texts, searchState);
                                       },
                                       maxLines: null,
                                       decoration: InputDecoration(
@@ -310,6 +304,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                                                       HapticFeedback
                                                           .heavyImpact();
                                                       _submitButton();
+                                                      widget.navigateToHome();
                                                     },
                                                     child: Text(
                                                       "Post",
@@ -334,18 +329,40 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                           ],
                         )),
                     Container(
-                        width: MediaQuery.of(context).size.width / 1,
-                        height: MediaQuery.of(context).size.height / 5,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10)),
-                        child: _file == null
-                            ? SizedBox.shrink()
-                            : Container(
-                                height: 200,
-                                child: Image.file(
-                                  _file!,
-                                ))),
+                      width: MediaQuery.of(context).size.width / 1.12,
+                      height: MediaQuery.of(context).size.height / 2,
+                      alignment: Alignment.center,
+                      decoration:
+                          BoxDecoration(borderRadius: BorderRadius.circular(2)),
+                      child: _file == null
+                          ? SizedBox.shrink()
+                          : Stack(
+                              children: [
+                                Image.file(_file!),
+                                Positioned(
+                                  top: 5,
+                                  right: 5,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _file = null;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
                   ],
                 ),
               ),
@@ -354,174 +371,5 @@ class _ComposePostReplyPageState extends State<ComposePost> {
         ],
       ),
     );
-
-    //      Scaffold(
-    // extendBodyBehindAppBar: true,
-    // appBar: AppBar(
-    //     centerTitle: true,
-    //     backgroundColor: Colors.transparent,
-    //     flexibleSpace: ClipRRect(
-    //         child: BackdropFilter(
-    //             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-    //             child: Container(
-    //               color: Colors.black.withOpacity(0),
-    //               width: MediaQuery.of(context).size.width / 1,
-    //               height: 200,
-    //             )))),
-    // backgroundColor: Colors.black,
-    // body: GestureDetector(
-    //     onHorizontalDragUpdate: (details) {
-    //       if (details.delta.dx > 0) {
-    //         setState(() {
-    //           Navigator.pop(context);
-    //         });
-    //       }
-    //     },
-    //     child: ListView(
-    //       children: [
-    //         Column(
-    //           mainAxisAlignment: MainAxisAlignment.center,
-    //           children: <Widget>[
-    //             Container(
-    //                 height: 100,
-    //                 alignment: Alignment.center,
-    //                 child: Column(
-    //                   mainAxisAlignment: MainAxisAlignment.center,
-    //                   children: [
-    //                     ComposeBottomIconWidget(
-    //                       textEditingController: _textEditingController,
-    //                       onImageIconSelcted: _onImageIconSelcted,
-    //                     )
-    //                   ],
-    //                 )),
-    //             Padding(
-    //               padding: EdgeInsets.only(
-    //                 left: MediaQuery.of(context).size.width / 5,
-    //                 right: MediaQuery.of(context).size.width / 5,
-    //               ),
-    //               child: Container(
-    //                   width: MediaQuery.of(context).size.width / 1,
-    //                   height: MediaQuery.of(context).size.height / 4,
-    //                   alignment: Alignment.center,
-    //                   decoration: BoxDecoration(
-    //                       borderRadius: BorderRadius.circular(10)),
-    //                   child: _file == null
-    //                       ? SizedBox.shrink()
-    //                       : Container(
-    //                           height: 200,
-    //                           child: Image.file(
-    //                             _file!,
-    //                           ))),
-    //             ),
-    //             Padding(
-    //                 padding: EdgeInsets.all(20),
-    //                 child: Container(
-    //                     padding: EdgeInsets.all(20),
-    //                     decoration: BoxDecoration(
-    //                         border:
-    //                             Border.all(color: Colors.white, width: 1),
-    //                         borderRadius: const BorderRadius.all(
-    //                             Radius.circular(15))),
-    //                     child: Row(
-    //                       mainAxisAlignment: MainAxisAlignment.center,
-    //                       crossAxisAlignment: CrossAxisAlignment.center,
-    //                       children: <Widget>[
-    //                         Column(
-    //                           children: [
-    //                             Padding(
-    //                                 padding: EdgeInsets.all(20),
-    //                                 child: Hero(
-    //                                     tag: 'PP',
-    //                                     child: CachedNetworkImage(
-    //                                         imageUrl: authState
-    //                                             .user!.photoURL
-    //                                             .toString(),
-    //                                         height: 40))),
-    //                             nums >= 100
-    //                                 ? FadeIn(
-    //                                     child: Text(
-    //                                     "${nums.toString()} / 280",
-    //                                     style: TextStyle(
-    //                                         color: nums >= 280
-    //                                             ? Colors.blue
-    //                                             : Colors.white),
-    //                                   ))
-    //                                 : SizedBox.shrink(),
-    //                           ],
-    //                         ),
-    //                         const SizedBox(
-    //                           width: 10,
-    //                         ),
-    //                         Expanded(
-    //                           child: Column(
-    //                               crossAxisAlignment:
-    //                                   CrossAxisAlignment.start,
-    //                               children: <Widget>[
-    //                                 TextField(
-    //                                   maxLength: 280,
-    //                                   keyboardAppearance:
-    //                                       MediaQuery.of(context)
-    //                                                   .platformBrightness ==
-    //                                               Brightness.dark
-    //                                           ? Brightness.dark
-    //                                           : Brightness.light,
-    //                                   style: TextStyle(color: Colors.white),
-    //                                   controller: _textEditingController,
-    //                                   onChanged: (texts) {
-    //                                     setState(() {
-    //                                       nums = _textEditingController
-    //                                           .text.length;
-    //                                     });
-    //                                     Provider.of<ComposePostState>(
-    //                                             context,
-    //                                             listen: false)
-    //                                         .onDescriptionChanged(
-    //                                             texts, searchState);
-    //                                   },
-    //                                   maxLines: null,
-    //                                   decoration: InputDecoration(
-    //                                       border: InputBorder.none,
-    //                                       hintText:
-    //                                           "Info about you're art..",
-    //                                       hintStyle: TextStyle(
-    //                                           fontSize: 18,
-    //                                           color: Colors.white,
-    //                                           overflow:
-    //                                               TextOverflow.ellipsis)),
-    //                                 ),
-    //                               ]),
-    //                         )
-    //                       ],
-    //                     ))),
-    //             RippleButton(
-    //               splashColor: Colors.transparent,
-    //               child: Container(
-    //                   height: 70,
-    //                   width: 200,
-    //                   decoration: BoxDecoration(
-    //                     color: Colors.white,
-    //                     borderRadius: BorderRadius.circular(50),
-    //                   ),
-    //                   child: Center(
-    //                       child: Text(
-    //                     "Upload",
-    //                     style: TextStyle(
-    //                         fontFamily: "icons.ttf",
-    //                         color: Colors.black,
-    //                         fontSize: 35,
-    //                         fontWeight: FontWeight.w900),
-    //                   ))),
-    //               onPressed: () {
-    //                 HapticFeedback.heavyImpact();
-    //                 _submitButton();
-    //               },
-    //             ),
-    //             Container(
-    //               height: 100,
-    //             )
-    //           ],
-    //         ),
-    //       ],
-    //     )));
   }
 }

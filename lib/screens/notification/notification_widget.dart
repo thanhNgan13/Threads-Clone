@@ -44,7 +44,7 @@ class _NotificationPageState extends State<NotificationPage> {
   void initState() {
     super.initState();
     // Lấy dữ liệu từ Firestore khi khởi tạo widget
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SearchState>(context, listen: false).getDataFromFirestore();
     });
   }

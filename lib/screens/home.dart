@@ -1,12 +1,11 @@
+import 'package:final_exercises/providers/post.state.dart';
+import 'package:flutter/material.dart';
 import 'package:final_exercises/screens/composePost/newPost.dart';
-import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
 import 'package:final_exercises/screens/notification/notification_widget.dart';
-import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/search_widget.dart';
 import 'package:final_exercises/screens/listPost/list_post_widget.dart';
 import 'package:final_exercises/screens/profilepage/myprofile.dart';
-import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../component/BottomNavItem.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -30,19 +29,37 @@ class BodyWidget extends StatefulWidget {
 class _BodyWidgetState extends State<BodyWidget> {
   int _selectedIndex = 0;
   final int sizeIcon = 30;
+
+  List<Widget> _tabs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = [
+      const ListPostWidget(),
+      const SearchWidget(),
+      ComposePost(navigateToHome: _navigateToHome),
+      const NotificationPage(),
+      const MyProfilePage()
+    ];
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  final List<Widget> _tabs = [
-    const ListPostWidget(),
-    const SearchWidget(),
-    const ComposePost(),
-    const NotificationPage(),
-    const MyProfilePage()
-  ];
+  void _navigateToHome() {
+    setState(() {
+      _selectedIndex = 0;
+    });
+    _refreshPosts();
+  }
+
+  Future<void> _refreshPosts() async {
+    await Provider.of<PostState>(context, listen: false).getPosts();
+  }
 
   final List<BottomNavItem> bottomNavItems = [
     BottomNavItem(
@@ -60,6 +77,7 @@ class _BodyWidgetState extends State<BodyWidget> {
     BottomNavItem(icon: const Icon(Icons.notifications_outlined, size: 30)),
     BottomNavItem(icon: const Icon(Icons.person_outline, size: 30))
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

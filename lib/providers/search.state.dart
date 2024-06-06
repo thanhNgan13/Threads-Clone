@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:final_exercises/models/user.dart';
 import 'app.state.dart';
 import 'package:final_exercises/helper/enum.dart';
