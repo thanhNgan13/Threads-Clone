@@ -6,8 +6,8 @@ class UserModel {
   final String? profileImageUrl;
   final String? biography;
   final String? fcmToken;
-  final List? following;
-  final List? followers;
+  List? following;
+  List? followers;
 
   UserModel({
     this.id,
