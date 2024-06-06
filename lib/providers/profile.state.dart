@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';

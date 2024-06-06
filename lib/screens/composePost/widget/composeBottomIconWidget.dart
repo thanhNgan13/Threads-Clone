@@ -50,13 +50,20 @@ class _ComposeBottomIconWidgetState extends State<ComposeBottomIconWidget> {
     if (pickedFile != null) {
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: pickedFile.path,
-        cropStyle: CropStyle.rectangle,
-        aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.ratio3x2,
-          CropAspectRatioPreset.original,
-          CropAspectRatioPreset.ratio4x3,
-          CropAspectRatioPreset.ratio16x9,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ],
+          ),
         ],
       );
 

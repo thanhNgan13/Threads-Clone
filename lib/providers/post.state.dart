@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/providers/app.state.dart';
 import 'package:firebase_database/firebase_database.dart' as dabase;
-import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 
 class PostState extends AppStates {
@@ -57,6 +56,37 @@ class PostState extends AppStates {
     return postKey;
   }
 
+  Future<String?> uploadFile(File file) async {
+    try {
+      isBusy = true;
+      notifyListeners();
+
+      // Tạo tham chiếu đến vị trí mà bạn muốn tải lên trong Firebase Storage
+      var storageReference = FirebaseStorage.instance
+          .ref()
+          .child("threadsImage")
+          .child(path
+              .basename('${DateTime.now().toIso8601String()}_${file.path}'));
+
+      // Tải lên tệp tin đến tham chiếu đã chỉ định
+      UploadTask uploadTask = storageReference.putFile(file);
+
+      // Chờ cho đến khi việc tải lên hoàn tất
+      await uploadTask;
+
+      // Lấy URL tải xuống của tệp tin đã tải lên
+      String downloadUrl = await storageReference.getDownloadURL();
+
+      return downloadUrl;
+    } catch (error) {
+      print('Lỗi khi tải lên tệp: $error');
+      return null;
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
   List<PostModel>? getPostList(UserModel? userModel) {
     if (userModel == null) {
       return null;
@@ -82,7 +112,7 @@ class PostState extends AppStates {
       CollectionReference postsCollection =
           FirebaseFirestore.instance.collection('posts');
       QuerySnapshot snapshot =
-          await postsCollection.orderBy('createdAt', descending: true).get();
+          await postsCollection.orderBy('createdAt', descending: false).get();
       _feedlist =
           snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
     } catch (error) {

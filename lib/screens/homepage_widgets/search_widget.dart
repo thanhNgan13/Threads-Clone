@@ -1,5 +1,4 @@
 import 'package:final_exercises/providers/UserProvider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/values/app_styles.dart';

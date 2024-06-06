@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/screens/splash.dart';
 import 'package:flutter/cupertino.dart';
