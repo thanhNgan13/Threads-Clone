@@ -240,8 +240,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                               borderRadius: BorderRadius.circular(100),
                               child: CachedNetworkImage(
                                 imageUrl:
-                                    authState.currentUser!.profileImageUrl ??
-                                        '',
+                                    'https://www.w3schools.com/w3images/avatar2.png',
                                 height: 50,
                               )),
                           Container(
@@ -270,7 +269,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              authState.currentUser!.name ?? '',
+                              authState.currentUser?.name ?? '',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,

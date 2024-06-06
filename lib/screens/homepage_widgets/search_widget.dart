@@ -59,7 +59,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   @override
   Widget build(BuildContext context) {
     var authState = Provider.of<UserProvider>(context);
-    final currentUserId = authState.currentUser!.id;
+    final currentUserId = authState.currentUser?.id;
 
     return Scaffold(
       body: SafeArea(
@@ -117,7 +117,8 @@ class _SearchWidgetState extends State<SearchWidget> {
                               onFollow: () =>
                                   followUser(currentUserId!, user.id!),
                               onUnfollow: () =>
-                                  unfollowUser(currentUserId!, user.id!));
+                                  unfollowUser(currentUserId!, user.id!),
+                              currentUserId: currentUserId);
                         });
                   })
             ]),
@@ -130,10 +131,16 @@ class _SearchWidgetState extends State<SearchWidget> {
 
 class SuggestedUserWidget extends StatefulWidget {
   const SuggestedUserWidget(
-      {super.key, required this.user, this.onFollow, this.onUnfollow});
+      {super.key,
+      required this.user,
+      this.onFollow,
+      this.onUnfollow,
+      required this.currentUserId});
   final UserModel user;
   final VoidCallback? onFollow;
   final VoidCallback? onUnfollow;
+  final String? currentUserId; // Nhận currentUserId
+
   @override
   State<SuggestedUserWidget> createState() => _SuggestedUserWidgetState();
 }
@@ -152,11 +159,14 @@ class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
       trailing: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .doc(widget.currentUserId) // Sử dụng currentUserId từ widget
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
+            }
+            if (!snapshot.hasData || snapshot.data!.data() == null) {
+              return const SizedBox();
             }
             final currentUser = UserModel.fromMap(
                 snapshot.data!.data() as Map<String, dynamic>);
