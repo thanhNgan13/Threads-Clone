@@ -150,8 +150,7 @@ class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundImage: AssetImage(
-            widget.user.profileImageUrl ?? 'assets/images/logo_threads.png')!,
+        backgroundImage: Image.network(widget.user.profileImageUrl!).image,
       ),
       title: Text(widget.user.name!,
           style: AppStyles.h5.copyWith(fontWeight: FontWeight.w600)),

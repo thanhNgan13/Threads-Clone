@@ -67,23 +67,25 @@ class _BodyWidgetState extends State<BodyWidget> {
         index: _selectedIndex,
         children: _tabs,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        fixedColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        unselectedFontSize: 10,
-        selectedFontSize: 10,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: [
-          for (var i = 0; i < bottomNavItems.length; i++)
-            BottomNavigationBarItem(
-              icon: bottomNavItems.elementAt(i).icon,
-              label: bottomNavItems.elementAt(i).label,
+      bottomNavigationBar: (_selectedIndex != 2)
+          ? BottomNavigationBar(
+              backgroundColor: Colors.black,
+              fixedColor: Colors.white,
+              unselectedItemColor: Colors.grey,
+              type: BottomNavigationBarType.fixed,
+              unselectedFontSize: 10,
+              selectedFontSize: 10,
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+              items: [
+                for (var i = 0; i < bottomNavItems.length; i++)
+                  BottomNavigationBarItem(
+                    icon: bottomNavItems.elementAt(i).icon,
+                    label: bottomNavItems.elementAt(i).label,
+                  )
+              ],
             )
-        ],
-      ),
+          : null,
     );
   }
 }

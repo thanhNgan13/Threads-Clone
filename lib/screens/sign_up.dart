@@ -53,37 +53,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         },
       );
-      try {
-        await Provider.of<UserProvider>(context, listen: false)
-            .signUpWithEmail(email, password, name, username);
-        // Navigate to home screen
-        Navigator.of(context).pop(); // Close the loading dialog
 
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()));
-      } catch (e) {
-        print(e);
-        Navigator.of(context).pop(); // Close the loading dialog
-        showDialog(
+      await Provider.of<UserProvider>(context, listen: false)
+          .signUpWithEmail(email, password, name, username);
+      // Navigate to home screen
+      Navigator.of(context).pop(); // Close the loading dialog
+
+      final errorMessage =
+          Provider.of<UserProvider>(context, listen: false).errorMessage;
+
+      if (errorMessage != null) {
+        return showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text(
-                'Error',
-                style: TextStyle(fontSize: 16, color: Colors.red),
-              ),
-              content: Text('Failed to sign up. Please try again.'),
-              actions: [
+              title: Text('Error',
+                  style: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.bold)),
+              content: Text(errorMessage),
+              actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
-                )
+                  child: Text(
+                    'OK',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
               ],
             );
           },
         );
+      } else {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => HomeScreen()));
       }
     }
   }

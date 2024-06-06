@@ -33,10 +33,7 @@ class UserProvider extends ChangeNotifier {
     user = _auth.currentUser;
     if (user != null) {
       // Nếu có, cập nhật trạng thái và thông tin người dùng
-      _currentUser = UserModel(
-        id: user!.uid,
-        name: user!.displayName,
-      );
+      _currentUser = await _userService.getUserByUid(user!.uid);
       _isLoggedIn = true;
     } else {
       _isLoggedIn = false;
@@ -56,7 +53,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signWithEmail(String email, String pass) async {
+  Future<void> signInWithEmail(String email, String pass) async {
     try {
       _userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -82,6 +79,7 @@ class UserProvider extends ChangeNotifier {
       );
       _currentUser = UserModel(
           id: _userCredential!.user!.uid,
+          email: email,
           name: name,
           username: userName,
           profileImageUrl: 'https://www.w3schools.com/w3images/avatar2.png');
@@ -96,12 +94,21 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> checkEmailExists(String email) async {
+    try {
+      List<String> signInMethods =
+          await _auth.fetchSignInMethodsForEmail(email);
+      return signInMethods.isNotEmpty;
+    } catch (e) {
+      print('Error checking email existence: $e');
+      return false;
+    }
+  }
+
   void clearErrorMessage() {
     _errorMessage = null;
     notifyListeners();
   }
-
-  void login() {}
 
   void logout() {
     signOut();

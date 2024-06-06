@@ -1,5 +1,6 @@
 import 'package:final_exercises/firebase_options.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
+import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/login.dart';
 import 'package:final_exercises/screens/splash.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => PostState()),
       ],
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
