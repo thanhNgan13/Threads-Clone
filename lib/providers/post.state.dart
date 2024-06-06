@@ -57,28 +57,6 @@ class PostState extends AppStates {
     return postKey;
   }
 
-  // List<PostModel>? getPostListByFollower(UserModel? userModel) {
-  //   if (userModel == null) {
-  //     return null;
-  //   }
-  //   List<PostModel>? list;
-  //   if (!isBusy && feedlist != null && feedlist!.isNotEmpty) {
-  //     list = feedlist!.where((x) {
-  //       if ((x.user!. == userModel.userId ||
-  //           (userModel.followingList != null &&
-  //               userModel.followingList!.contains(x.user!.userId)))) {
-  //         return true;
-  //       } else {
-  //         return false;
-  //       }
-  //     }).toList();
-  //     if (list.isEmpty) {
-  //       list = null;
-  //     }
-  //   }
-  //   return list;
-  // }
-
   List<PostModel>? getPostList(UserModel? userModel) {
     if (userModel == null) {
       return null;
@@ -97,65 +75,26 @@ class PostState extends AppStates {
     return list;
   }
 
-  set setFeedModel(PostModel model) {
-    _postDetailModelList ??= [];
-
-    _postDetailModelList!.add(model);
+  Future<void> getPosts() async {
+    isBusy = true;
+    notifyListeners();
+    try {
+      CollectionReference postsCollection =
+          FirebaseFirestore.instance.collection('posts');
+      QuerySnapshot snapshot =
+          await postsCollection.orderBy('createdAt', descending: true).get();
+      _feedlist =
+          snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+    } catch (error) {
+      print('Error getting posts: $error');
+    }
+    isBusy = false;
     notifyListeners();
   }
 
-  Future<bool> databaseInit() {
-    try {
-      if (_feedQuery == null) {
-        _feedQuery = kDatabase.child("post");
-        _feedQuery!.onChildAdded.listen(onPostAdded);
-      }
-      return Future.value(true);
-    } catch (error) {
-      return Future.value(false);
-    }
-  }
-
-  void getDataFromDatabase() {
-    try {
-      isBusy = true;
-      _feedlist = null;
-      notifyListeners();
-      kDatabase.child('post').once().then((DatabaseEvent event) {
-        final snapshot = event.snapshot;
-        _feedlist = <PostModel>[];
-        if (snapshot.value != null) {
-          var map = snapshot.value as Map<dynamic, dynamic>?;
-          if (map != null) {
-            map.forEach((key, value) {
-              var model = PostModel.fromJson(value);
-              model.key = key;
-              _feedlist!.add(model);
-            });
-            _feedlist!.sort((x, y) => DateTime.parse(x.createdAt)
-                .compareTo(DateTime.parse(y.createdAt)));
-          }
-        } else {
-          _feedlist = null;
-        }
-        isBusy = false;
-        notifyListeners();
-      });
-    } catch (error) {
-      isBusy = false;
-    }
-  }
-
-  onPostAdded(DatabaseEvent event) {
-    PostModel post = PostModel.fromJson(event.snapshot.value as Map);
-    post.key = event.snapshot.key!;
-
-    post.key = event.snapshot.key!;
-    _feedlist ??= <PostModel>[];
-    if ((_feedlist!.isEmpty || _feedlist!.any((x) => x.key != post.key))) {
-      _feedlist!.add(post);
-    }
-    isBusy = false;
+  set setFeedModel(PostModel model) {
+    _postDetailModelList ??= [];
+    _postDetailModelList!.add(model);
     notifyListeners();
   }
 }
