@@ -3,6 +3,7 @@ import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
 import 'package:final_exercises/screens/homepage_widgets/notification_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/search_widget.dart';
+import 'package:final_exercises/screens/profilepage/myprofile.dart';
 import 'package:flutter/material.dart';
 
 import '../component/BottomNavItem.dart';
@@ -40,7 +41,7 @@ class _BodyWidgetState extends State<BodyWidget> {
     const SearchWidget(),
     const ComposePost(),
     const NotificationWidget(),
-    const UserWidget()
+    const MyProfilePage()
   ];
 
   final List<BottomNavItem> bottomNavItems = [
