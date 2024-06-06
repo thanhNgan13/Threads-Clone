@@ -2,9 +2,13 @@
 import 'dart:io';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
+import 'package:final_exercises/providers/post.state.dart';
+import 'package:final_exercises/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/post.dart';
@@ -65,12 +69,12 @@ class _ComposePostReplyPageState extends State<ComposePost> {
       ));
       return;
     }
-    // if (_textEditingController.text.isEmpty) return;
+    if (_textEditingController.text.isEmpty) return;
 
-    // var state = Provider.of<PostState>(context, listen: false);
+    var state = Provider.of<PostState>(context, listen: false);
 
-    // PostModel postModel = await createPostModel();
-    // String? postId;
+    PostModel postModel = await createPostModel();
+    String? postId;
 
     // if (_file != null) {
     //   await state.uploadFile(_file!).then((imagePath) async {
@@ -82,8 +86,11 @@ class _ComposePostReplyPageState extends State<ComposePost> {
     // } else {
     //   postId = await state.createPost(postModel);
     // }
-    // postModel.key = postId;
-    // _textEditingController.clear();
+
+    postId = await state.createPost(postModel);
+
+    postModel.key = postId;
+    _textEditingController.clear();
     // setState(() {
     //   _file = null;
     // });
@@ -152,21 +159,21 @@ class _ComposePostReplyPageState extends State<ComposePost> {
   bool more = false;
 
   Future createPostModel() async {
-    // var authState = Provider.of<AuthState>(context, listen: false);
-    // var myUser = authState.userModel;
-    // var profilePic = myUser!.profilePic;
+    var authState = Provider.of<UserProvider>(context, listen: false);
+    var myUser = authState.currentUser;
+    var profilePic = myUser!.profileImageUrl ?? '';
 
-    // var commentedUser = UserModel(
-    //     displayName: myUser.displayName ?? myUser.email!.split('@')[0],
-    //     profilePic: profilePic,
-    //     userId: myUser.userId,
-    //     userName: authState.userModel!.userName);
-    // PostModel reply = PostModel(
-    //     user: commentedUser,
-    //     bio: _textEditingController.text,
-    //     createdAt: DateTime.now().toUtc().toString(),
-    //     key: myUser.userId!);
-    // return reply;
+    var postedUser = UserModel(
+      username: myUser.username ?? myUser.email!.split('@')[0],
+      profileImageUrl: profilePic,
+      id: myUser.id,
+    );
+    PostModel reply = PostModel(
+        user: postedUser,
+        bio: _textEditingController.text,
+        createdAt: DateTime.now().toUtc().toString(),
+        key: myUser.id!);
+    return reply;
   }
 
   bool select = false;
@@ -178,181 +185,173 @@ class _ComposePostReplyPageState extends State<ComposePost> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: Container(),
-        flexibleSpace: Padding(
-            padding: EdgeInsets.only(top: 50),
-            child: Container(
-                decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 29, 29, 29),
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15))),
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FadeIn(
-                        duration: Duration(milliseconds: 1000),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Padding(
-                                padding: EdgeInsets.only(left: 15, top: 5),
-                                child: GestureDetector(
-                                    onTap: () {},
-                                    child: Text("Cancel",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w400)))),
-                            Container(
-                              width: 65,
-                            ),
-                            Text(
-                              "New threads   ",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        )),
-                  ],
-                ))),
+        backgroundColor: Color.fromARGB(255, 29, 29, 29),
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        title: Text(
+          "New Threads",
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.close,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => SplashPage()));
+          },
+        ),
       ),
-      body: Container(
-        color: Color.fromARGB(255, 29, 29, 29),
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                  padding: EdgeInsets.all(14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: CachedNetworkImage(
-                                imageUrl:
-                                    'https://www.w3schools.com/w3images/avatar2.png',
-                                height: 50,
-                              )),
-                          Container(
-                            height: 6,
-                          ),
-                          Container(
-                            height: 50,
-                            width: 2,
-                            color: const Color.fromARGB(255, 87, 87, 87),
-                          ),
-                          Container(
-                            height: 10,
-                          ),
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                                color: Colors.white, shape: BoxShape.circle),
-                          )
-                        ],
-                      ),
-                      Container(
-                        width: 15,
-                      ),
-                      Column(
+      body: Column(
+        children: [
+          Divider(
+            color: const Color.fromARGB(
+                255, 159, 155, 155), // Màu của đường gạch ngang
+            thickness: 1, // Độ dày của đường gạch ngang
+            height: 1, // Chiều cao của đường gạch ngang
+          ),
+          Expanded(
+            child: Container(
+              color: Color.fromARGB(255, 29, 29, 29),
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                        padding: EdgeInsets.all(14),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              authState.currentUser?.name ?? '',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600),
+                            Column(
+                              children: [
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: CachedNetworkImage(
+                                      imageUrl: authState
+                                              .currentUser?.profileImageUrl ??
+                                          '',
+                                      height: 50,
+                                    )),
+                                Container(
+                                  height: 6,
+                                ),
+                                Container(
+                                  height: 50,
+                                  width: 2,
+                                  color: const Color.fromARGB(255, 87, 87, 87),
+                                ),
+                                Container(
+                                  height: 10,
+                                ),
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle),
+                                )
+                              ],
                             ),
                             Container(
-                              width: MediaQuery.of(context).size.width - 100,
-                              height: MediaQuery.of(context).size.height / 3,
-                              child: TextField(
-                                maxLength: 500,
-                                keyboardAppearance:
-                                    MediaQuery.of(context).platformBrightness ==
-                                            Brightness.dark
-                                        ? Brightness.dark
-                                        : Brightness.light,
-                                style: TextStyle(color: Colors.white),
-                                controller: _textEditingController,
-                                onChanged: (texts) {
-                                  setState(() {
-                                    nums = _textEditingController.text.length;
-                                  });
-                                  // Provider.of<ComposePostState>(context,
-                                  //         listen: false)
-                                  //     .onDescriptionChanged(texts, searchState);
-                                },
-                                maxLines: null,
-                                decoration: InputDecoration(
-                                    suffix: Container(
-                                      height: 80,
-                                      width: 50,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          ComposeBottomIconWidget(
-                                            textEditingController:
-                                                _textEditingController,
-                                            onImageIconSelcted:
-                                                _onImageIconSelcted,
-                                          ),
-                                          GestureDetector(
-                                              onTap: () {
-                                                HapticFeedback.heavyImpact();
-                                                _submitButton();
-                                              },
-                                              child: Text(
-                                                "Post",
-                                                style: TextStyle(
-                                                    color: Colors.blue,
-                                                    fontWeight:
-                                                        FontWeight.w600),
-                                              ))
-                                        ],
-                                      ),
-                                    ),
-                                    border: InputBorder.none,
-                                    hintText: "Start a threads..",
-                                    hintStyle: TextStyle(
-                                        fontSize: 15,
-                                        color:
-                                            Color.fromARGB(255, 112, 112, 112),
-                                        overflow: TextOverflow.ellipsis)),
-                              ),
+                              width: 15,
                             ),
-                          ]),
-                    ],
-                  )),
-              Container(
-                  width: MediaQuery.of(context).size.width / 1,
-                  height: MediaQuery.of(context).size.height / 5,
-                  alignment: Alignment.center,
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(10)),
-                  child: _file == null
-                      ? SizedBox.shrink()
-                      : Container(
-                          height: 200,
-                          child: Image.file(
-                            _file!,
-                          ))),
-            ],
+                            Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    authState.currentUser?.username ?? '',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  Container(
+                                    width:
+                                        MediaQuery.of(context).size.width - 100,
+                                    height:
+                                        MediaQuery.of(context).size.height / 3,
+                                    child: TextField(
+                                      maxLength: 500,
+                                      keyboardAppearance: MediaQuery.of(context)
+                                                  .platformBrightness ==
+                                              Brightness.dark
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                      style: TextStyle(color: Colors.white),
+                                      controller: _textEditingController,
+                                      onChanged: (texts) {
+                                        setState(() {
+                                          nums = _textEditingController
+                                              .text.length;
+                                        });
+                                        // Provider.of<ComposePostState>(context,
+                                        //         listen: false)
+                                        //     .onDescriptionChanged(texts, searchState);
+                                      },
+                                      maxLines: null,
+                                      decoration: InputDecoration(
+                                          suffix: Container(
+                                            height: 80,
+                                            width: 50,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                ComposeBottomIconWidget(
+                                                  textEditingController:
+                                                      _textEditingController,
+                                                  onImageIconSelcted:
+                                                      _onImageIconSelcted,
+                                                ),
+                                                GestureDetector(
+                                                    onTap: () {
+                                                      HapticFeedback
+                                                          .heavyImpact();
+                                                      _submitButton();
+                                                    },
+                                                    child: Text(
+                                                      "Post",
+                                                      style: TextStyle(
+                                                          color: Colors.blue,
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ))
+                                              ],
+                                            ),
+                                          ),
+                                          border: InputBorder.none,
+                                          hintText: "Start a threads..",
+                                          hintStyle: TextStyle(
+                                              fontSize: 15,
+                                              color: Color.fromARGB(
+                                                  255, 112, 112, 112),
+                                              overflow: TextOverflow.ellipsis)),
+                                    ),
+                                  ),
+                                ]),
+                          ],
+                        )),
+                    Container(
+                        width: MediaQuery.of(context).size.width / 1,
+                        height: MediaQuery.of(context).size.height / 5,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10)),
+                        child: _file == null
+                            ? SizedBox.shrink()
+                            : Container(
+                                height: 200,
+                                child: Image.file(
+                                  _file!,
+                                ))),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
 

@@ -24,7 +24,7 @@ class PostModel {
       "createdAt": createdAt,
       "bio": bio,
       "imagePath": imagePath,
-      "user": user,
+      "user": user == null ? null : user!.toJson(),
     };
   }
 

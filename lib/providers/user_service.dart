@@ -11,9 +11,10 @@ class UserService {
         'id': userModel.id,
         'name': userModel.name,
         'username': userModel.username,
+        'email': userModel.email,
         'followers': <String>[],
         'following': <String>[],
-        'profileImageUrl': 'assets/images/logo_threads.png',
+        'profileImageUrl': userModel.profileImageUrl,
         'biography': '',
       });
     } catch (e) {

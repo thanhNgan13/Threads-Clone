@@ -52,34 +52,38 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         },
       );
-      try {
-        await Provider.of<UserProvider>(context, listen: false)
-            .signWithEmail(email, password);
-        Navigator.of(context).pop(); // Close the loading dialog
-        Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(builder: (context) => HomeScreen()));
-      } catch (e) {
-        print(e);
-        Navigator.of(context).pop(); // Close the loading dialog
-        showDialog(
+
+      await Provider.of<UserProvider>(context, listen: false)
+          .signInWithEmail(email, password);
+      Navigator.of(context).pop(); // Close the loading dialog
+      final errorMessage =
+          Provider.of<UserProvider>(context, listen: false).errorMessage;
+      if (errorMessage != null) {
+        return showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
               title: Text('Error',
                   style: TextStyle(
                       color: Colors.red, fontWeight: FontWeight.bold)),
-              content: const Text('Failed to sign in. Please try again.'),
+              content: Text(errorMessage),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('OK'),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ],
             );
           },
         );
+      } else {
+        Navigator.of(context).pushReplacement(
+            new MaterialPageRoute(builder: (context) => HomeScreen()));
       }
     }
   }
