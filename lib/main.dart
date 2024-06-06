@@ -1,6 +1,7 @@
 import 'package:final_exercises/firebase_options.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
+import 'package:final_exercises/providers/search.state.dart';
 import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/login.dart';
 import 'package:final_exercises/screens/splash.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => PostState()),
+        ChangeNotifierProvider(create: (context) => SearchState()),
       ],
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
