@@ -18,7 +18,6 @@ class PostState extends AppStates {
   }
 
   List<PostModel>? _feedlist;
-  dabase.Query? _feedQuery;
   List<PostModel>? _postDetailModelList;
 
   List<PostModel>? get postDetailModel => _postDetailModelList;
@@ -31,17 +30,26 @@ class PostState extends AppStates {
     }
   }
 
+  final CollectionReference postsCollection =
+      FirebaseFirestore.instance.collection('posts');
+
+  List<PostModel>? _feedlistForUser;
+
+  List<PostModel>? get feedlistForUser {
+    if (_feedlistForUser == null) {
+      return null;
+    } else {
+      return List.from(_feedlistForUser!.reversed);
+    }
+  }
+
   Future<String?> createPost(PostModel model) async {
     isBusy = true;
     notifyListeners();
     String? postKey;
     try {
       // Tham chiếu đến bộ sưu tập 'posts' trong Firestore
-      CollectionReference posts =
-          FirebaseFirestore.instance.collection('posts');
-
-      // Thêm bài đăng mới vào Firestore và lấy tài liệu tham chiếu
-      DocumentReference docRef = await posts.add(model.toJson());
+      DocumentReference docRef = await postsCollection.add(model.toJson());
 
       // Lấy ID tài liệu duy nhất từ Firestore
       postKey = docRef.id;
@@ -87,36 +95,31 @@ class PostState extends AppStates {
     }
   }
 
-  List<PostModel>? getPostList(UserModel? userModel) {
-    if (userModel == null) {
-      return null;
-    }
-
-    List<PostModel>? list;
-
-    if (!isBusy && feedlist != null && feedlist!.isNotEmpty) {
-      list = feedlist!.where((x) {
-        return true;
-      }).toList();
-      if (list.isEmpty) {
-        list = null;
-      }
-    }
-    return list;
-  }
-
   Future<void> getPosts() async {
     isBusy = true;
     notifyListeners();
     try {
-      CollectionReference postsCollection =
-          FirebaseFirestore.instance.collection('posts');
       QuerySnapshot snapshot =
           await postsCollection.orderBy('createdAt', descending: false).get();
       _feedlist =
           snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
     } catch (error) {
       print('Error getting posts: $error');
+    }
+    isBusy = false;
+    notifyListeners();
+  }
+
+  Future<void> getPostsByUserId(String userId) async {
+    isBusy = true;
+    notifyListeners();
+    try {
+      QuerySnapshot snapshot =
+          await postsCollection.where('user.id', isEqualTo: userId).get();
+      _feedlistForUser =
+          snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+    } catch (error) {
+      print('Error getting posts by user id: $error');
     }
     isBusy = false;
     notifyListeners();
