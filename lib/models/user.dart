@@ -1,26 +1,21 @@
 class UserModel {
-  final String id;
-  final String name;
-  final String username;
+  final String? id;
+  final String? name;
+  final String? username;
   final String? profileImageUrl;
   final String? biography;
-  final List following;
-  final List followers;
+  final List? following;
+  final List? followers;
 
   UserModel({
-    required this.id,
-    required this.name,
-    required this.username,
+    this.id,
+    this.name,
+    this.username,
     this.profileImageUrl,
-    required this.following,
-    required this.followers,
+    this.following,
+    this.followers,
     this.biography,
   });
-  // UserModel(
-  //     {required this.id,
-  //     required this.name,
-  //     required this.username,
-  //     this.profileImageUrl});
 
   UserModel.fromMap(Map<String, dynamic> data)
       : id = data['id'],

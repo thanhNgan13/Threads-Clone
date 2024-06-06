@@ -1,4 +1,4 @@
-import 'package:final_exercises/screens/composePost/post.dart';
+import 'package:final_exercises/screens/composePost/newPost.dart';
 import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
 import 'package:final_exercises/screens/homepage_widgets/notification_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';

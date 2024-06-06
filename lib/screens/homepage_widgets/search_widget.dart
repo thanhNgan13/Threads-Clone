@@ -1,8 +1,10 @@
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/values/app_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SearchWidget extends StatefulWidget {
   const SearchWidget({super.key});
@@ -16,11 +18,10 @@ class _SearchWidgetState extends State<SearchWidget> {
       FirebaseFirestore.instance.collection('users');
   final searchController = TextEditingController();
   String searchQuery = '';
-  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
   @override
   void initState() {
     super.initState();
-    print(currentUserId);
     searchController.addListener(() {
       setState(() {
         searchQuery = searchController.text;
@@ -28,7 +29,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     });
   }
 
-  Future<void> followUser(String userId) async {
+  Future<void> followUser(String currentUserId, String userId) async {
     await _usersCollection.doc(currentUserId).update({
       'following': FieldValue.arrayUnion([userId])
     });
@@ -38,7 +39,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     });
   }
 
-  Future<void> unfollowUser(String userId) async {
+  Future<void> unfollowUser(String currentUserId, String userId) async {
     await _usersCollection.doc(currentUserId).update({
       'following': FieldValue.arrayRemove([userId])
     });
@@ -51,12 +52,15 @@ class _SearchWidgetState extends State<SearchWidget> {
   List<UserModel> filteredUsers(List<UserModel> users, String searchQuery) {
     return users
         .where((user) =>
-            user.username.toLowerCase().contains(searchQuery.toLowerCase()))
+            user.username!.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    var authState = Provider.of<UserProvider>(context);
+    final currentUserId = authState.currentUser!.id;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -110,8 +114,10 @@ class _SearchWidgetState extends State<SearchWidget> {
                           final user = _filteredUsers[index];
                           return SuggestedUserWidget(
                               user: user,
-                              onFollow: () => followUser(user.id),
-                              onUnfollow: () => unfollowUser(user.id));
+                              onFollow: () =>
+                                  followUser(currentUserId!, user.id!),
+                              onUnfollow: () =>
+                                  unfollowUser(currentUserId!, user.id!));
                         });
                   })
             ]),
@@ -138,9 +144,9 @@ class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: AssetImage(
-            widget.user.profileImageUrl ?? 'assets/images/logo_threads.png'),
+            widget.user.profileImageUrl ?? 'assets/images/logo_threads.png')!,
       ),
-      title: Text(widget.user.name,
+      title: Text(widget.user.name!,
           style: AppStyles.h5.copyWith(fontWeight: FontWeight.w600)),
       subtitle: Text('@${widget.user.username}', style: AppStyles.h5),
       trailing: StreamBuilder(
@@ -154,7 +160,7 @@ class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
             }
             final currentUser = UserModel.fromMap(
                 snapshot.data!.data() as Map<String, dynamic>);
-            final isFollowing = currentUser.following.contains(widget.user.id);
+            final isFollowing = currentUser.following!.contains(widget.user.id);
             return InkWell(
               onTap: isFollowing ? widget.onUnfollow : widget.onFollow,
               child: Container(

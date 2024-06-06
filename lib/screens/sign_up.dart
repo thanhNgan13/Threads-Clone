@@ -1,7 +1,10 @@
+import 'package:final_exercises/providers/UserProvider.dart';
+import 'package:final_exercises/screens/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -41,28 +44,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
             );
           });
     } else {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
       try {
-        // Sign up user
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(email: email, password: password);
-        // Save user details to Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
-          'id': userCredential.user!.uid,
-          'name': name,
-          'username': username,
-          'followers': <String>[],
-          'following': <String>[],
-          'profileImageUrl': 'assets/images/logo_threads.png',
-          'biography': '',
-          //may be add more fields here
-        });
+        await Provider.of<UserProvider>(context, listen: false)
+            .signUpWithEmail(email, password, name, username);
         // Navigate to home screen
-        Navigator.pop(context);
+        Navigator.of(context).pop(); // Close the loading dialog
+
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => HomeScreen()));
       } catch (e) {
         print(e);
+        Navigator.of(context).pop(); // Close the loading dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(
+                'Error',
+                style: TextStyle(fontSize: 16, color: Colors.red),
+              ),
+              content: Text('Failed to sign up. Please try again.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                )
+              ],
+            );
+          },
+        );
       }
     }
   }
