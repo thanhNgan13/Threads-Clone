@@ -43,23 +43,33 @@ class _ComposeBottomIconWidgetState extends State<ComposeBottomIconWidget> {
   }
 
   Future<void> setImage(ImageSource source) async {
-    ImagePicker()
-        .pickImage(source: source, imageQuality: 100)
-        .then((XFile? file) async {
-      await ImageCropper.platform.cropImage(
-        sourcePath: file!.path,
+    final picker = ImagePicker();
+    final pickedFile =
+        await picker.pickImage(source: source, imageQuality: 100);
+
+    if (pickedFile != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: pickedFile.path,
         cropStyle: CropStyle.rectangle,
         aspectRatioPresets: [
           CropAspectRatioPreset.square,
           CropAspectRatioPreset.ratio3x2,
           CropAspectRatioPreset.original,
           CropAspectRatioPreset.ratio4x3,
-          CropAspectRatioPreset.ratio16x9
+          CropAspectRatioPreset.ratio16x9,
         ],
-      ).then((value) => setState(() {
-            widget.onImageIconSelcted(File(value!.path));
-          }));
-    });
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          widget.onImageIconSelcted(File(croppedFile.path));
+        });
+      } else {
+        print("Image cropping was cancelled or failed.");
+      }
+    } else {
+      print("Image picking was cancelled or failed.");
+    }
   }
 
   double getPostLimit() {

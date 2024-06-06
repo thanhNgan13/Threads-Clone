@@ -2,10 +2,12 @@
 import 'dart:io';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/post.dart';
 import 'widget/composeBottomIconWidget.dart';
 
 class ComposePost extends StatefulWidget {
@@ -18,7 +20,7 @@ class ComposePost extends StatefulWidget {
 }
 
 class _ComposePostReplyPageState extends State<ComposePost> {
-  // late PostModel? model;
+  late PostModel? model;
   late ScrollController scrollcontroller;
   late TextEditingController _textEditingController;
   File? _file;
@@ -172,7 +174,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
   @override
   Widget build(BuildContext context) {
     // final searchState = Provider.of<SearchState>(context, listen: false);
-    // var authState = Provider.of<AuthState>(context);
+    var authState = Provider.of<UserProvider>(context);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -238,7 +240,8 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                               borderRadius: BorderRadius.circular(100),
                               child: CachedNetworkImage(
                                 imageUrl:
-                                    'https://www.w3schools.com/w3images/avatar2.png',
+                                    authState.currentUser!.profileImageUrl ??
+                                        '',
                                 height: 50,
                               )),
                           Container(
@@ -267,8 +270,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              // authState.userModel!.displayName.toString(),
-                              "Username",
+                              authState.currentUser!.name ?? '',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,

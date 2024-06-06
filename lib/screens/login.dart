@@ -1,7 +1,10 @@
+import 'package:final_exercises/models/user.dart';
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/sign_up.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,20 +33,53 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('OK'),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
             ],
           );
         },
       );
     } else {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
       try {
-        await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email, password: password);
+        await Provider.of<UserProvider>(context, listen: false)
+            .signWithEmail(email, password);
+        Navigator.of(context).pop(); // Close the loading dialog
         Navigator.of(context).pushReplacement(
             new MaterialPageRoute(builder: (context) => HomeScreen()));
       } catch (e) {
         print(e);
+        Navigator.of(context).pop(); // Close the loading dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error',
+                  style: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.bold)),
+              content: const Text('Failed to sign in. Please try again.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
       }
     }
   }
