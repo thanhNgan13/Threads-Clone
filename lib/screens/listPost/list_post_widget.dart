@@ -1,9 +1,12 @@
+import 'package:final_exercises/providers/post.state.dart';
+import 'package:final_exercises/screens/listPost/feedpost.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
 import 'package:iconsax/iconsax.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 
 import '../../helper/utility.dart';
 
@@ -15,6 +18,8 @@ class ListPostWidget extends StatefulWidget {
 }
 
 class _ListPostWidgetState extends State<ListPostWidget> {
+  ScrollController _scrollController = ScrollController();
+
   bool isExpanded = false;
   bool showMoreButton = false;
 
@@ -24,6 +29,9 @@ class _ListPostWidgetState extends State<ListPostWidget> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      Provider.of<PostState>(context, listen: false).getPosts();
+    });
   }
 
   @override
@@ -41,14 +49,28 @@ class _ListPostWidgetState extends State<ListPostWidget> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            bodyPost(context),
-            bodyPost(context),
-            bodyPost(context),
-          ],
-        ),
+      body: Consumer<PostState>(
+        builder: (context, state, child) {
+          if (state.isBusy) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state.feedlist == null || state.feedlist!.isEmpty) {
+            return Center(child: Text('No posts available'));
+          } else {
+            return Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: state.feedlist!.length,
+                itemBuilder: (context, index) {
+                  return FeedPost(
+                    postModel: state.feedlist![index],
+                  );
+                },
+              ),
+            );
+          }
+        },
       ),
     );
   }

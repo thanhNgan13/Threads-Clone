@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:flutter/src/widgets/basic.dart';
 
@@ -37,4 +38,15 @@ class PostModel {
   }
 
   map(Stack Function(dynamic model) param0) {}
+
+  factory PostModel.fromDocument(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return PostModel(
+      key: doc.id,
+      bio: data['bio'],
+      createdAt: data['createdAt'],
+      imagePath: data['imagePath'],
+      user: data['user'] != null ? UserModel.fromMap(data['user']) : null,
+    );
+  }
 }

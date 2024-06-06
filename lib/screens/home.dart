@@ -3,11 +3,11 @@ import 'package:final_exercises/screens/homepage_widgets/new_post_wiget.dart';
 import 'package:final_exercises/screens/homepage_widgets/notification_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/personal_widget.dart';
 import 'package:final_exercises/screens/homepage_widgets/search_widget.dart';
+import 'package:final_exercises/screens/listPost/list_post_widget.dart';
 import 'package:final_exercises/screens/profilepage/myprofile.dart';
 import 'package:flutter/material.dart';
 
 import '../component/BottomNavItem.dart';
-import 'homepage_widgets/list_post_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
