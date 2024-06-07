@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:final_exercises/models/comment.dart';
 import 'package:final_exercises/models/post.dart';
 
 Future<void> likePost(PostModel post, String userId) async {
@@ -38,58 +37,84 @@ Future<void> unlikePost(PostModel post, String userId) async {
   });
 }
 
-Future<void> addComment(String postID, String userId, String comment) async {
-  DocumentReference postRef =
-      FirebaseFirestore.instance.collection('posts').doc(postID);
-
-  DocumentReference userRef =
-      FirebaseFirestore.instance.collection('users').doc(userId);
-
-  // Kiểm tra xem các document có tồn tại hay không
-  DocumentSnapshot postSnapshot = await postRef.get();
-  DocumentSnapshot userSnapshot = await userRef.get();
+Future<PostModel> getPost(String postID) async {
+  DocumentSnapshot postSnapshot =
+      await FirebaseFirestore.instance.collection('posts').doc(postID).get();
 
   if (!postSnapshot.exists) {
     throw Exception("Post document does not exist!");
   }
 
-  if (!userSnapshot.exists) {
-    throw Exception("User document does not exist!");
+  return PostModel.fromDocument(postSnapshot);
+}
+
+Future<void> addComment(String postID) async {
+  DocumentReference postRef =
+      FirebaseFirestore.instance.collection('posts').doc(postID);
+
+  // Kiểm tra xem các document có tồn tại hay không
+  DocumentSnapshot postSnapshot = await postRef.get();
+
+  if (!postSnapshot.exists) {
+    throw Exception("Post document does not exist!");
   }
 
   await FirebaseFirestore.instance.runTransaction((transaction) async {
     transaction.update(postRef, {
       'commentsCount': FieldValue.increment(1),
-      'comments': FieldValue.arrayUnion([
-        {
-          'comment': comment,
-          'userId': userId,
-          'createdAt': DateTime.now().toIso8601String(),
-        }
-      ]),
-    });
-
-    transaction.update(userRef, {
-      'comments': FieldValue.arrayUnion([postID]),
     });
   });
 }
 
-Future<List<CommentModel>> getAllComments(String postId) async {
-  DocumentReference postRef =
-      FirebaseFirestore.instance.collection('posts').doc(postId);
+// Future<void> addComment(String postID) async {
+//   DocumentReference postRef =
+//       FirebaseFirestore.instance.collection('posts').doc(postID);
 
-  DocumentSnapshot postSnapshot = await postRef.get();
+//   // Kiểm tra xem post có tồn tại hay không
+//   DocumentSnapshot postSnapshot = await postRef.get();
 
-  if (!postSnapshot.exists) {
-    throw Exception("Post document does not exist!");
-  }
+//   if (!postSnapshot.exists) {
+//     throw Exception("Post document does not exist!");
+//   }
 
-  List<dynamic> commentsData = postSnapshot.get('comments') ?? [];
+//   // Lấy thông tin của post mới thêm vào
+//   Map<String, dynamic>? postData = postSnapshot.data() as Map<String, dynamic>?;
+//   String? parentPostID = postData?['keyReply'];
 
-  List<CommentModel> comments = commentsData.map((data) {
-    return CommentModel.fromJson(data as Map<String, dynamic>);
-  }).toList();
+//   if (parentPostID != null) {
+//     // Kiểm tra và cập nhật các post cha, ông...
+//     await FirebaseFirestore.instance.runTransaction((transaction) async {
+//       DocumentReference parentPostRef =
+//           FirebaseFirestore.instance.collection('posts').doc(parentPostID);
 
-  return comments;
-}
+//       while (parentPostID != null) {
+//         DocumentSnapshot parentPostSnapshot =
+//             await transaction.get(parentPostRef);
+
+//         if (!parentPostSnapshot.exists) {
+//           throw Exception("Parent post document does not exist!");
+//         }
+
+//         transaction.update(parentPostRef, {
+//           'commentsCount': FieldValue.increment(1),
+//         });
+
+//         Map<String, dynamic>? parentPostData =
+//             parentPostSnapshot.data() as Map<String, dynamic>?;
+//         parentPostID = parentPostData?['keyReply'];
+
+//         if (parentPostID != null) {
+//           parentPostRef =
+//               FirebaseFirestore.instance.collection('posts').doc(parentPostID);
+//         }
+//       }
+//     });
+//   } else {
+//     // Nếu không có post cha, chỉ tăng commentsCount của post hiện tại
+//     await FirebaseFirestore.instance.runTransaction((transaction) async {
+//       transaction.update(postRef, {
+//         'commentsCount': FieldValue.increment(1),
+//       });
+//     });
+//   }
+// }

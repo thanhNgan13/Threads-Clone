@@ -56,7 +56,11 @@ class _ListPostWidgetState extends State<ListPostWidget> {
           if (state.isBusy) {
             return Center(child: CircularProgressIndicator());
           } else if (state.feedlist == null || state.feedlist!.isEmpty) {
-            return Center(child: Text('No posts available'));
+            return Center(
+                child: Text(
+              'No posts available',
+              style: TextStyle(color: Colors.white),
+            ));
           } else {
             return RefreshIndicator(
               onRefresh: _refreshPosts,
@@ -68,6 +72,7 @@ class _ListPostWidgetState extends State<ListPostWidget> {
                     postModel: state.feedlist![index],
                     currentUserId:
                         Provider.of<UserProvider>(context).currentUser?.id,
+                    onItemTap: _refreshPosts,
                   );
                 },
               ),
