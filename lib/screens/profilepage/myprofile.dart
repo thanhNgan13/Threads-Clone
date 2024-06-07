@@ -24,28 +24,14 @@ class _ProfilePageState extends State<MyProfilePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      var authState = Provider.of<UserProvider>(context, listen: false);
-      var postState = Provider.of<PostState>(context, listen: false);
-      if (authState.currentUser != null) {
-        postState.getPostsByUserId(authState.currentUser!.id!);
-      }
-    });
-  }
-
-  Future<void> _refreshPosts() async {
-    var authState = Provider.of<UserProvider>(context, listen: false);
-    var postState = Provider.of<PostState>(context, listen: false);
-    if (authState.currentUser != null) {
-      await postState.getPostsByUserId(authState.currentUser!.id!);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     var authState = Provider.of<UserProvider>(context);
     var postState = Provider.of<PostState>(context);
+    String userId = authState.currentUser?.id ?? "";
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
@@ -277,45 +263,34 @@ class _ProfilePageState extends State<MyProfilePage>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        Consumer<PostState>(
-                          builder: (context, postState, _) {
-                            return RefreshIndicator(
-                              onRefresh: _refreshPosts,
-                              child: postState.isBusy
-                                  ? Center(
-                                      child: CircularProgressIndicator(),
-                                    )
-                                  : postState.feedlistForUser == null ||
-                                          postState.feedlistForUser!.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            "You haven't posted any threads yet.",
-                                            style: TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 84, 60, 60),
-                                            ),
-                                          ),
-                                        )
-                                      : ListView.builder(
-                                          itemCount:
-                                              postState.feedlistForUser!.length,
-                                          itemBuilder: (context, index) {
-                                            final post = postState
-                                                .feedlistForUser![index];
-                                            return FeedPost(
-                                              postModel: post,
-                                            );
-                                          },
-                                        ),
+                        StreamBuilder<List<PostModel>>(
+                          stream: postState.getFeedListForUserStream(userId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return Center(
+                                  child: Text(
+                                      "You haven't posted any threads yet."));
+                            }
+                            var posts = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: posts.length,
+                              itemBuilder: (context, index) {
+                                final post = posts[index];
+                                return FeedPost(
+                                    postModel: post, currentUserId: userId);
+                              },
                             );
                           },
                         ),
                         Center(
                           child: Text(
-                            "This is the Threads tab.",
+                            "This is the Replies tab.",
                             style: TextStyle(
-                              color: Color.fromARGB(255, 84, 60, 60),
-                            ),
+                                color: Color.fromARGB(255, 84, 60, 60)),
                           ),
                         ),
                       ],
