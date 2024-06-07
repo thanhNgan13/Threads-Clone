@@ -3,11 +3,10 @@ import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
 import 'package:final_exercises/screens/listPost/detail/detailPage.dart';
+import 'package:final_exercises/services/post_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-
-import '../../services/post_service.dart';
 
 class FeedPost extends StatefulWidget {
   final PostModel postModel;

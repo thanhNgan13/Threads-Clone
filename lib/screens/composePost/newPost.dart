@@ -85,8 +85,6 @@ class _ComposePostReplyPageState extends State<ComposePost> {
       postId = await state.createPost(postModel);
     }
 
-    // postId = await state.createPost(postModel);
-
     postModel.key = postId;
     _textEditingController.clear();
     setState(() {
@@ -206,7 +204,7 @@ class _ComposePostReplyPageState extends State<ComposePost> {
             color: const Color.fromARGB(
                 255, 159, 155, 155), // Màu của đường gạch ngang
             thickness: 1, // Độ dày của đường gạch ngang
-            height: 1, // Chiều cao của đường gạch ngang
+            height: 0.5, // Chiều cao của đường gạch ngang
           ),
           Expanded(
             child: Container(

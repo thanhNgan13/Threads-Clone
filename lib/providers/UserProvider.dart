@@ -1,5 +1,5 @@
 import 'package:final_exercises/models/user.dart';
-import 'package:final_exercises/providers/user_service.dart';
+import 'package:final_exercises/services/user_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';

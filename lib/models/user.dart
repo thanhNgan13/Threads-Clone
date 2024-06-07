@@ -8,6 +8,7 @@ class UserModel {
   final String? fcmToken;
   List? following;
   List? followers;
+  List<String>? likedPosts;
 
   UserModel({
     this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.following,
     this.followers,
     this.biography,
+    this.likedPosts,
   });
 
   Map<String, dynamic> toJson() {
@@ -32,6 +34,7 @@ class UserModel {
       'fcmToken': fcmToken,
       'followers': followers,
       'following': following,
+      'likedPosts': likedPosts,
     };
   }
 
@@ -45,5 +48,7 @@ class UserModel {
         following = data['following'],
         followers = data['followers'],
         biography =
-            data['biography'] != null ? data['biography'] as String : null;
+            data['biography'] != null ? data['biography'] as String : null,
+        likedPosts = List<String>.from(data['likedPosts'] ??
+            []); // Khởi tạo likedPosts từ map hoặc mặc định là rỗng
 }
