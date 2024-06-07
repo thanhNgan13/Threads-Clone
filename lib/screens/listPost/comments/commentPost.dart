@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/models/user.dart';
+import 'package:final_exercises/providers/UserProvider.dart';
+import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/composePost/widget/composeBottomIconWidget.dart';
 import 'package:final_exercises/services/post_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
 class FeedPostDetail extends StatefulWidget {
   final PostModel postModel;
@@ -43,10 +46,73 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
     });
   }
 
+  void _submitButton(String postIdCurrent) async {
+    if (_textEditingController.text.length > 280) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40), topRight: Radius.circular(40))),
+        backgroundColor: Colors.white,
+        content: Container(
+            alignment: Alignment.center,
+            height: 30,
+            child: Text(
+              "Max Description: 280",
+              style: TextStyle(
+                  fontFamily: "icons.ttf",
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.w900),
+            )),
+      ));
+      return;
+    }
+    if (_textEditingController.text.isEmpty) return;
+
+    var state = Provider.of<PostState>(context, listen: false);
+
+    PostModel postModel = await createPostModel(postIdCurrent);
+    String? postId;
+
+    if (_file != null) {
+      await state.uploadFile(_file!).then((imagePath) async {
+        if (imagePath != null) {
+          postModel.imagePath = imagePath;
+          postId = await state.createPost(postModel);
+        }
+      });
+    } else {
+      postId = await state.createPost(postModel);
+    }
+
+    postModel.key = postId;
+    _textEditingController.clear();
+    setState(() {
+      _file = null;
+    });
+  }
+
+  Future createPostModel(String postIdCurrent) async {
+    var profilePic = widget.userModel.profileImageUrl ?? '';
+
+    var postedUser = UserModel(
+      username:
+          widget.userModel.username ?? widget.userModel.email!.split('@')[0],
+      profileImageUrl: profilePic,
+      id: widget.userModel.id,
+    );
+    PostModel reply = PostModel(
+        user: postedUser,
+        bio: _textEditingController.text,
+        createdAt: DateTime.now().toUtc().toString(),
+        key: widget.userModel.id!,
+        keyReply: postIdCurrent);
+    return reply;
+  }
+
   @override
   void initState() {
     super.initState();
-
     scrollcontroller = ScrollController();
     _textEditingController = TextEditingController();
     _textEditingController.addListener(() {
@@ -459,20 +525,45 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
               ElevatedButton(
                 onPressed: isButtonEnabled
                     ? () async {
-                        String postId = widget.postModel.key!;
-                        String userId = widget.userModel.id!;
-                        String comment = _textEditingController.text;
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    360.0), // Định hình là hình tròn
+                              ),
+                              child: SizedBox(
+                                width:
+                                    20.0, // Đảm bảo rằng kích thước phù hợp với hình dạng hình tròn
+                                height:
+                                    20.0, // Đảm bảo rằng kích thước phù hợp với hình dạng hình tròn
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.blue),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
 
-                        print("Post ID: $postId");
-                        print("User ID: $userId");
-                        print("Comment: $comment");
+                        String postIdCurrent = widget.postModel.key!;
 
-                        await addComment(postId, userId, comment);
+                        _submitButton(postIdCurrent);
+                        await addComment(postIdCurrent);
 
                         setState(() {
                           _textEditingController.clear();
                           isButtonEnabled = false;
                         });
+
+                        await Future.delayed(
+                            Duration(seconds: 2)); // Wait for 2 seconds
+                        Navigator.pop(context); // Close the dialog
                       }
                     : null,
                 child: Text(

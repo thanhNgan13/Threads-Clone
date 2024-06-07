@@ -43,6 +43,16 @@ class PostState extends AppStates {
     }
   }
 
+  List<PostModel>? _feedlistForPost;
+
+  List<PostModel>? get feedlistForPost {
+    if (_feedlistForPost == null) {
+      return null;
+    } else {
+      return List.from(_feedlistForPost!.reversed);
+    }
+  }
+
   Future<String?> createPost(PostModel model) async {
     isBusy = true;
     notifyListeners();
@@ -99,8 +109,10 @@ class PostState extends AppStates {
     isBusy = true;
     notifyListeners();
     try {
-      QuerySnapshot snapshot =
-          await postsCollection.orderBy('createdAt', descending: false).get();
+      QuerySnapshot snapshot = await postsCollection
+          .orderBy('createdAt', descending: false)
+          .where('keyReply', isNull: true)
+          .get();
       _feedlist =
           snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
     } catch (error) {
@@ -114,8 +126,10 @@ class PostState extends AppStates {
     isBusy = true;
     notifyListeners();
     try {
-      QuerySnapshot snapshot =
-          await postsCollection.where('user.id', isEqualTo: userId).get();
+      QuerySnapshot snapshot = await postsCollection
+          .where('user.id', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
       _feedlistForUser =
           snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
     } catch (error) {
@@ -131,13 +145,35 @@ class PostState extends AppStates {
     notifyListeners();
   }
 
-  Stream<List<PostModel>> getPostsStream() {
-    return FirebaseFirestore.instance
-        .collection('posts')
-        .orderBy('createdAt', descending: false)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
-    });
+  Future<void> getPostsByPostIdRepply(String postID) async {
+    isBusy = true;
+    notifyListeners();
+    try {
+      QuerySnapshot snapshot = await postsCollection
+          .where('keyReply', isEqualTo: postID)
+          .orderBy('createdAt', descending: false)
+          .get();
+      _feedlistForPost =
+          snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+    } catch (error) {
+      print('Error getting posts by user id: $error');
+    }
+    isBusy = false;
+    notifyListeners();
+  }
+
+  Future<PostModel> getPostsByPostId(String postID) async {
+    isBusy = true;
+    notifyListeners();
+    try {
+      QuerySnapshot snapshot =
+          await postsCollection.where('key', isEqualTo: postID).get();
+      return PostModel.fromDocument(snapshot.docs.first);
+    } catch (error) {
+      print('Error getting posts by user id: $error');
+    }
+    isBusy = false;
+    notifyListeners();
+    throw Exception('Failed to get post by ID');
   }
 }

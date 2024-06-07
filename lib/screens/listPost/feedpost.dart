@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
@@ -5,15 +7,17 @@ import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
 import 'package:final_exercises/screens/listPost/detail/detailPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:debounce_throttle/debounce_throttle.dart';
 
 import '../../services/post_service.dart';
 
 class FeedPost extends StatefulWidget {
   final PostModel postModel;
   final String? currentUserId;
+  final VoidCallback? onItemTap;
 
-  FeedPost({super.key, required this.postModel, this.currentUserId});
+  FeedPost(
+      {super.key, required this.postModel, this.currentUserId, this.onItemTap});
 
   @override
   State<FeedPost> createState() => _FeedPostState();
@@ -26,6 +30,8 @@ class _FeedPostState extends State<FeedPost> {
   bool isLiked = false;
   int likeCount = 0;
   int commentCount = 0;
+  bool onPressedValue = true;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -41,7 +47,12 @@ class _FeedPostState extends State<FeedPost> {
         widget.postModel.bio!,
         TextStyle(color: Colors.white),
         300); // 300 là độ rộng giới hạn của văn bản
-    print("Text Height: $textHeight");
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   double calculateTextHeight(String text, TextStyle style, double maxWidth) {
@@ -61,12 +72,26 @@ class _FeedPostState extends State<FeedPost> {
       setState(() {
         isLiked = false;
         likeCount--;
+        onPressedValue = false;
+      });
+      // Timer để kích hoạt lại nút sau 30 giây
+      _timer = Timer(Duration(seconds: 2), () {
+        setState(() {
+          onPressedValue = true;
+        });
       });
     } else {
       await likePost(widget.postModel, widget.currentUserId!);
       setState(() {
         isLiked = true;
         likeCount++;
+        onPressedValue = false;
+      });
+      // Timer để kích hoạt lại nút sau 30 giây
+      _timer = Timer(Duration(seconds: 2), () {
+        setState(() {
+          onPressedValue = true;
+        });
       });
     }
   }
@@ -75,12 +100,18 @@ class _FeedPostState extends State<FeedPost> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // Xử lý sự kiện nhấn vào bài viết
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return DetailPage(
-            postModel: widget.postModel,
-          );
-        }));
+        print(widget.postModel.key.toString());
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => DetailPage(
+                    postModel: widget.postModel,
+                    currentUserId: widget.currentUserId,
+                  )),
+        ).then((_) {
+          widget.onItemTap!();
+        });
       },
       child: Container(
         color: Colors.black,
@@ -254,34 +285,28 @@ class _FeedPostState extends State<FeedPost> {
                     const SizedBox(width: 40),
                     // Button like
                     IconButton(
-                      onPressed: _toggleLike,
-                      icon: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 300),
-                        transitionBuilder:
-                            (Widget child, Animation<double> animation) {
-                          return ScaleTransition(
-                              scale: animation, child: child);
-                        },
-                        child: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          key: ValueKey<bool>(isLiked),
-                          color: isLiked ? Colors.red : Colors.white,
-                          size: 20,
-                        ),
+                      onPressed: onPressedValue ? _toggleLike : null,
+                      icon: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        key: ValueKey<bool>(isLiked),
+                        color: isLiked ? Colors.red : Colors.white,
+                        size: 20,
                       ),
                     ),
                     IconButton(
                       onPressed: () {
                         // Xử lý sự kiện nhấn vào biểu tượng bình luận
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return CommentScreen(
-                            postModel: widget.postModel,
-                          );
-                        }));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  CommentScreen(postModel: widget.postModel)),
+                        ).then((_) {
+                          widget.onItemTap!();
+                        });
                       },
                       icon: Icon(
-                        Iconsax.repeat,
+                        Icons.comment,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -289,7 +314,7 @@ class _FeedPostState extends State<FeedPost> {
                     IconButton(
                       onPressed: () {},
                       icon: Icon(
-                        Iconsax.share,
+                        Icons.share,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -298,7 +323,7 @@ class _FeedPostState extends State<FeedPost> {
                     IconButton(
                       onPressed: () {},
                       icon: Icon(
-                        Iconsax.send_2,
+                        Icons.send,
                         color: Colors.white,
                         size: 20,
                       ),
