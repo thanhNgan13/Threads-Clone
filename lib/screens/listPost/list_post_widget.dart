@@ -1,3 +1,4 @@
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/listPost/feedpost.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +66,8 @@ class _ListPostWidgetState extends State<ListPostWidget> {
                 itemBuilder: (context, index) {
                   return FeedPost(
                     postModel: state.feedlist![index],
+                    currentUserId:
+                        Provider.of<UserProvider>(context).currentUser?.id,
                   );
                 },
               ),

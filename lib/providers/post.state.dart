@@ -130,4 +130,14 @@ class PostState extends AppStates {
     _postDetailModelList!.add(model);
     notifyListeners();
   }
+
+  Stream<List<PostModel>> getPostsStream() {
+    return FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+    });
+  }
 }

@@ -27,8 +27,18 @@ class Utility {
       return '';
     }
     var dt = DateTime.parse(date).toLocal();
-    var dat = DateFormat.yMMMd().format(dt);
-    return dat;
+    var now = DateTime.now().toLocal();
+    var difference = now.difference(dt).inMinutes;
+
+    if (difference < 60) {
+      return '$difference phút trước';
+    } else if (difference < 1440) {
+      return '${difference ~/ 60} giờ trước';
+    } else if (difference < 10080) {
+      return '${difference ~/ 1440} ngày trước';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(dt);
+    }
   }
 
   static bool validateCredentials(BuildContext context,
