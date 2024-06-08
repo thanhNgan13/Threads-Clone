@@ -3,12 +3,9 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
-import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
-import 'package:final_exercises/screens/listPost/comments/commentPost.dart';
 import 'package:final_exercises/screens/listPost/detail/feedpostDetail.dart';
-import 'package:final_exercises/screens/listPost/feedpost.dart';
 import 'package:final_exercises/services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,17 +24,12 @@ class _DetailPageState extends State<DetailPage> {
   bool isExpanded = false;
   double textHeight = 0;
   bool isLiked = false;
-  int likeCount = 0;
-  int commentCount = 0;
   bool onPressedValue = true;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    likeCount = widget.postModel.likes ?? 0;
-    commentCount = widget.postModel.commentsCount ?? 0;
-    isLiked = widget.postModel.likedUsers!.contains(widget.currentUserId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PostState>(context, listen: false)
           .getPostsByPostIdRepply(widget.postModel.key!);
@@ -55,7 +47,6 @@ class _DetailPageState extends State<DetailPage> {
       await unlikePost(widget.postModel, widget.currentUserId!);
       setState(() {
         isLiked = false;
-        likeCount--;
         onPressedValue = false;
       });
       // Timer để kích hoạt lại nút sau 30 giây
@@ -68,7 +59,6 @@ class _DetailPageState extends State<DetailPage> {
       await likePost(widget.postModel, widget.currentUserId!);
       setState(() {
         isLiked = true;
-        likeCount++;
         onPressedValue = false;
       });
       // Timer để kích hoạt lại nút sau 30 giây
@@ -81,10 +71,13 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final currentUser = userProvider.currentUser;
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -196,24 +189,30 @@ class _DetailPageState extends State<DetailPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          IconButton(
-                            onPressed: onPressedValue ? _toggleLike : null,
-                            icon: AnimatedSwitcher(
-                              duration: Duration(milliseconds: 300),
-                              transitionBuilder:
-                                  (Widget child, Animation<double> animation) {
-                                return ScaleTransition(
-                                    scale: animation, child: child);
-                              },
-                              child: Icon(
-                                isLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                key: ValueKey<bool>(isLiked),
-                                color: isLiked ? Colors.red : Colors.white,
-                                size: 20,
-                              ),
-                            ),
+                          StreamBuilder<bool>(
+                            stream: hasCurrentUserLikedPost(
+                                widget.postModel.key!, widget.currentUserId!),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return SizedBox.shrink();
+                              }
+                              if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              }
+                              isLiked = snapshot.data ?? false;
+                              return IconButton(
+                                onPressed: onPressedValue ? _toggleLike : null,
+                                icon: Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  key: ValueKey<bool>(isLiked),
+                                  color: isLiked ? Colors.red : Colors.white,
+                                  size: 20,
+                                ),
+                              );
+                            },
                           ),
                           IconButton(
                             onPressed: () {
@@ -256,11 +255,35 @@ class _DetailPageState extends State<DetailPage> {
                       padding: const EdgeInsets.only(left: 15.0),
                       child: Row(
                         children: [
-                          Text('$likeCount likes',
-                              style: TextStyle(color: Colors.grey)),
+                          StreamBuilder<int>(
+                            stream: getPostLikesCount(widget.postModel.key!),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return SizedBox.shrink();
+                              }
+                              if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              }
+                              return Text('${snapshot.data} likes',
+                                  style: TextStyle(color: Colors.grey));
+                            },
+                          ),
                           SizedBox(width: 10),
-                          Text('$commentCount replies',
-                              style: TextStyle(color: Colors.grey)),
+                          StreamBuilder<int>(
+                            stream: getPostCommentsCount(widget.postModel.key!),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return SizedBox.shrink();
+                              }
+                              if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              }
+                              return Text('${snapshot.data} replies',
+                                  style: TextStyle(color: Colors.grey));
+                            },
+                          ),
                           Spacer(),
                           IconButton(
                             icon: Icon(Icons.share),
@@ -278,7 +301,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
                 Expanded(
                   child: state.isBusy
-                      ? Center(child: CircularProgressIndicator())
+                      ? Center(child: SizedBox.shrink())
                       : state.feedlistForPost == null ||
                               state.feedlistForPost!.isEmpty
                           ? Center(

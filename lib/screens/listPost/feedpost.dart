@@ -6,8 +6,6 @@ import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
 import 'package:final_exercises/screens/listPost/detail/detailPage.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:final_exercises/screens/listPost/detail/EditPostScreen.dart';
 import 'package:final_exercises/services/post_service.dart';
 
 class FeedPost extends StatefulWidget {
@@ -27,8 +25,7 @@ class _FeedPostState extends State<FeedPost> {
   bool showMoreButton = false;
   double textHeight = 0;
   bool isLiked = false;
-  int likeCount = 0;
-  int commentCount = 0;
+
   bool onPressedValue = true;
   Timer? _timer;
 
@@ -38,10 +35,6 @@ class _FeedPostState extends State<FeedPost> {
     if (widget.postModel.bio != null && widget.postModel.bio!.length > 500) {
       showMoreButton = true;
     }
-    likeCount = widget.postModel.likes ?? 0;
-    commentCount = widget.postModel.commentsCount ?? 0;
-    isLiked =
-        widget.postModel.likedUsers?.contains(widget.currentUserId) ?? false;
     textHeight = calculateTextHeight(
         widget.postModel.bio!,
         TextStyle(color: Colors.white),
@@ -68,11 +61,8 @@ class _FeedPostState extends State<FeedPost> {
     if (isLiked) {
       await unlikePost(widget.postModel, widget.currentUserId!);
       setState(() {
-        isLiked = false;
-        likeCount--;
         onPressedValue = false;
       });
-      // Timer để kích hoạt lại nút sau 30 giây
       _timer = Timer(Duration(seconds: 2), () {
         setState(() {
           onPressedValue = true;
@@ -81,70 +71,14 @@ class _FeedPostState extends State<FeedPost> {
     } else {
       await likePost(widget.postModel, widget.currentUserId!);
       setState(() {
-        isLiked = true;
-        likeCount++;
         onPressedValue = false;
       });
-      // Timer để kích hoạt lại nút sau 30 giây
       _timer = Timer(Duration(seconds: 2), () {
         setState(() {
           onPressedValue = true;
         });
       });
     }
-  }
-
-  void _editPost() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //       builder: (context) => EditPostScreen(postModel: widget.postModel)),
-    // ).then((updatedPost) {
-    //   if (updatedPost != null) {
-    //     setState(() {
-    //       widget.postModel = updatedPost;
-    //     });
-    //   }
-    // });
-  }
-
-  void _deletePost() async {
-    // if (widget.postModel.key == null || widget.currentUserId == null) {
-    //   print('Error: Post key or currentUserId is null.');
-    //   return;
-    // }
-
-    // bool? confirmed = await showDialog(
-    //   context: context,
-    //   builder: (context) => AlertDialog(
-    //     title: Text('Delete Post'),
-    //     content: Text('Are you sure you want to delete this post?'),
-    //     actions: [
-    //       TextButton(
-    //         onPressed: () => Navigator.pop(context, false),
-    //         child: Text('Cancel', style: TextStyle(color: Colors.blue)),
-    //       ),
-    //       TextButton(
-    //         onPressed: () => Navigator.pop(context, true),
-    //         child: Text('Delete', style: TextStyle(color: Colors.red)),
-    //       ),
-    //     ],
-    //   ),
-    // );
-
-    // if (confirmed == true) {
-    //   try {
-    //     await deletePost(widget.postModel.key!, widget.currentUserId!);
-    //     if (Navigator.canPop(context)) {
-    //       Navigator.pop(context); // Navigate back to the previous screen
-    //     }
-    //   } catch (e) {
-    //     print('Failed to delete post: $e');
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       SnackBar(content: Text('Failed to delete post. Please try again.')),
-    //     );
-    //   }
-    // }
   }
 
   @override
@@ -208,10 +142,10 @@ class _FeedPostState extends State<FeedPost> {
                   icon: Icon(Icons.more_horiz, color: Colors.white),
                   onSelected: (String value) {
                     if (value == 'Edit') {
-                      _editPost();
+                      print('Edit');
                     } else if (value == 'Delete') {
                       try {
-                        _deletePost();
+                        print('Delete');
                       } catch (e) {
                         print('Failed to delete post: $e');
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -363,14 +297,28 @@ class _FeedPostState extends State<FeedPost> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(width: 40),
-                    IconButton(
-                      onPressed: onPressedValue ? _toggleLike : null,
-                      icon: Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        key: ValueKey<bool>(isLiked),
-                        color: isLiked ? Colors.red : Colors.white,
-                        size: 20,
-                      ),
+                    StreamBuilder<bool>(
+                      stream: hasCurrentUserLikedPost(
+                          widget.postModel.key!, widget.currentUserId!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return SizedBox.shrink();
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        isLiked = snapshot.data ?? false;
+                        return IconButton(
+                          onPressed: onPressedValue ? _toggleLike : null,
+                          icon: Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            key: ValueKey<bool>(isLiked),
+                            color: isLiked ? Colors.red : Colors.white,
+                            size: 20,
+                          ),
+                        );
+                      },
                     ),
                     IconButton(
                       onPressed: () {
@@ -380,9 +328,7 @@ class _FeedPostState extends State<FeedPost> {
                           MaterialPageRoute(
                               builder: (context) =>
                                   CommentScreen(postModel: widget.postModel)),
-                        ).then((_) {
-                          widget.onItemTap!();
-                        });
+                        );
                       },
                       icon: Icon(
                         Icons.comment,
@@ -413,11 +359,35 @@ class _FeedPostState extends State<FeedPost> {
                     Container(
                       width: 50,
                     ),
-                    Text('$likeCount likes',
-                        style: TextStyle(color: Colors.grey)),
+                    StreamBuilder<int>(
+                      stream: getPostLikesCount(widget.postModel.key!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return SizedBox.shrink();
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        return Text('${snapshot.data} likes',
+                            style: TextStyle(color: Colors.grey));
+                      },
+                    ),
                     SizedBox(width: 10),
-                    Text('$commentCount replies',
-                        style: TextStyle(color: Colors.grey)),
+                    StreamBuilder<int>(
+                      stream: getPostCommentsCount(widget.postModel.key!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return SizedBox.shrink();
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        return Text('${snapshot.data} replies',
+                            style: TextStyle(color: Colors.grey));
+                      },
+                    ),
                     Spacer(),
                     IconButton(
                       icon: Icon(Icons.share),

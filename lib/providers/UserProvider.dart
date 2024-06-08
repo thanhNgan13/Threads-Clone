@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/services/user_service.dart';
 import 'package:flutter/foundation.dart';
@@ -26,6 +28,21 @@ class UserProvider extends ChangeNotifier {
 
   UserProvider() {
     checkCurrentUser();
+  }
+
+  Future<void> fetchCurrentUser() async {
+    if (user != null) {
+      _currentUser = await _userService.getUserByUid(user!.uid);
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateUserProfile(UserModel user, {File? image}) async {
+    // Update user profile in Firestore and handle image upload if needed
+    await _userService.updateUserProfile(user, image: image);
+    await _userService.updateUserPostsImagePath(user, image: image);
+    _currentUser = user;
+    notifyListeners();
   }
 
   Future<void> checkCurrentUser() async {

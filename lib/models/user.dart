@@ -51,4 +51,28 @@ class UserModel {
             data['biography'] != null ? data['biography'] as String : null,
         likedPosts = List<String>.from(data['likedPosts'] ??
             []); // Khởi tạo likedPosts từ map hoặc mặc định là rỗng
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? username,
+    String? profileImageUrl,
+    String? biography,
+    String? fcmToken,
+    List? following,
+    List? followers,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      username: username ?? this.username,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      biography: biography ?? this.biography,
+      fcmToken: fcmToken ?? this.fcmToken,
+      following: following ?? this.following,
+      followers: followers ?? this.followers,
+    );
+  }
 }

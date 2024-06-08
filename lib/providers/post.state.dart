@@ -40,7 +40,7 @@ class PostState extends AppStates {
   // Real-time stream for all posts
   Stream<List<PostModel>> get feedStream {
     return postsCollection
-        .orderBy('createdAt', descending: false)
+        .orderBy('createdAt', descending: true)
         .where('keyReply', isNull: true)
         .snapshots()
         .map(
@@ -52,7 +52,26 @@ class PostState extends AppStates {
 
   // Real-time stream for posts by a specific user
   Stream<List<PostModel>> getFeedListForUserStream(String userId) {
-    return postsCollection.where('user.id', isEqualTo: userId).snapshots().map(
+    return postsCollection
+        .orderBy('createdAt', descending: true)
+        .where('user.id', isEqualTo: userId)
+        .where('keyReply', isNull: true)
+        .snapshots()
+        .map(
+      (snapshot) {
+        return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+      },
+    );
+  }
+
+  // Real-time stream for posts by a specific user
+  Stream<List<PostModel>> getFeedListForUserStreamReply(String userId) {
+    return postsCollection
+        .orderBy('createdAt', descending: true)
+        .where('user.id', isEqualTo: userId)
+        .where('keyReply', isNull: false)
+        .snapshots()
+        .map(
       (snapshot) {
         return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
       },
