@@ -57,6 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(
                       CupertinoIcons.person_add,
                       size: 30,
+                      color: Colors.white,
                     ),
                     Container(
                       width: 20,
@@ -82,6 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(
                       CupertinoIcons.bell,
                       size: 30,
+                      color: Colors.white,
                     ),
                     Container(
                       width: 20,
@@ -107,6 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(
                       Icons.lock_outline,
                       size: 30,
+                      color: Colors.white,
                     ),
                     Container(
                       width: 20,
@@ -132,6 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(
                       Icons.help_outline,
                       size: 30,
+                      color: Colors.white,
                     ),
                     Container(
                       width: 20,
@@ -156,6 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     Icon(
                       CupertinoIcons.info,
+                      color: Colors.white,
                       size: 30,
                     ),
                     Container(
