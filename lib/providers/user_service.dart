@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UserService {
   final CollectionReference users =
@@ -34,6 +37,42 @@ class UserService {
     } catch (e) {
       print(e);
       return null;
+    }
+  }
+
+  Future<void> updateUserProfile(UserModel userModel, {File? image}) async {
+    try {
+      // If there is an image, handle image upload to a storage service (e.g., Firebase Storage)
+      String? imageUrl;
+      if (image != null) {
+        imageUrl = await uploadImage(userModel.id!, image);
+      }
+
+      // Update user document in Firestore
+      await users.doc(userModel.id).update({
+        'name': userModel.name,
+        'username': userModel.username,
+        'profileImageUrl': imageUrl ?? userModel.profileImageUrl,
+        'biography': userModel.biography,
+      });
+    } catch (e) {
+      print('Error updating user in FireStore: $e');
+    }
+  }
+
+  Future<String> uploadImage(String userId, File image) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profileImageUrl')
+          .child(userId);
+      final uploadTask = storageRef.putFile(image);
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return '';
     }
   }
 }

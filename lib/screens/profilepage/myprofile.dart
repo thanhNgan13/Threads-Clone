@@ -42,9 +42,25 @@ class _ProfilePageState extends State<MyProfilePage>
     }
   }
 
+  void _openEditProfilePage() async {
+    bool? isUpdated = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditProfilePage()),
+    );
+
+    // Nếu dữ liệu đã được cập nhật trong EditProfilePage, gọi setState để cập nhật màn hình hiện tại
+    if (isUpdated == true) {
+      
+      setState(() {
+        
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var authState = Provider.of<UserProvider>(context);
+     authState.fetchCurrentUser(); // Gọi phương thức để lấy lại dữ liệu mới
     var postState = Provider.of<PostState>(context);
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -99,12 +115,12 @@ class _ProfilePageState extends State<MyProfilePage>
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditProfilePage(),
-                                    ),
-                                  );
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => EditProfilePage(),
+                                  //   ),
+                                  // );
                                 },
                                 child: Text(
                                   "@" + (authState.currentUser?.username ?? ""),
@@ -127,12 +143,12 @@ class _ProfilePageState extends State<MyProfilePage>
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProfilePage(),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => EditProfilePage(),
+                          //   ),
+                          // );
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100),
@@ -156,12 +172,12 @@ class _ProfilePageState extends State<MyProfilePage>
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProfilePage(),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => EditProfilePage(),
+                          //   ),
+                          // );
                         },
                         child: Text(
                           authState.currentUser?.biography ?? "",
@@ -183,12 +199,7 @@ class _ProfilePageState extends State<MyProfilePage>
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProfilePage(),
-                            ),
-                          );
+                          _openEditProfilePage();
                         },
                         child: Container(
                           height: 40,
@@ -211,21 +222,25 @@ class _ProfilePageState extends State<MyProfilePage>
                       Container(
                         width: 10,
                       ),
-                      Container(
-                        height: 40,
-                        width: 165,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey,
-                            width: 0.5,
+                      GestureDetector(
+                        onTap: () {
+                        },
+                        child: Container(
+                          height: 40,
+                          width: 165,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.grey,
+                              width: 0.5,
+                            ),
                           ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "Share profile",
-                          style: TextStyle(color: Colors.white),
+                          alignment: Alignment.center,
+                          child: Text(
+                            "Share profile",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ],

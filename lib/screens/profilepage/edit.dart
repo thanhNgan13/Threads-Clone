@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
+import 'package:final_exercises/screens/notification/profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,27 +18,44 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late TextEditingController _displayName;
-  late TextEditingController _bio;
-  late TextEditingController _link;
+  late TextEditingController _displayNameController= TextEditingController();
+  late TextEditingController _bioController= TextEditingController();
+  late TextEditingController _linkController= TextEditingController();
+
+  bool _isNameEdited=false;
+  bool _isBioEdited=false;
+  bool _isPhotoEdited=false;
+
+
   File? _image;
 
   @override
   void initState() {
-    _displayName = TextEditingController();
-    _bio = TextEditingController();
-    _link = TextEditingController();
+
     UserProvider state = Provider.of<UserProvider>(context, listen: false);
-    _displayName.text = state.currentUser?.username ?? '';
-    _bio.text = state.currentUser?.biography ?? '';
+    _displayNameController.text = state.currentUser?.username ?? '';
+    _bioController.text = state.currentUser?.biography ?? '';
+
+    _displayNameController.addListener(() {
+      setState(() {
+        _isNameEdited=_displayNameController.text!=(state.currentUser?.username ?? '');
+      });
+    });
+    _bioController.addListener(() {
+      setState(() {
+        _isBioEdited=_bioController.text!=(state.currentUser?.biography ?? '');
+      });
+    });
+
+
     super.initState();
   }
 
   @override
   void dispose() {
-    _bio.dispose();
-    _link.dispose();
-    _displayName.dispose();
+    _bioController.dispose();
+    _linkController.dispose();
+    _displayNameController.dispose();
     super.dispose();
   }
 
@@ -71,14 +89,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    var state = Provider.of<UserProvider>(context);
+    var state = Provider.of<UserProvider>(context);    
+
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          toolbarHeight: 68,
+          toolbarHeight: 90,
           leading: Container(),
           flexibleSpace: Padding(
-              padding: EdgeInsets.only(left: 5, top: 60),
+              padding: EdgeInsets.only(left: 5, top: 20),
               child: Container(
                   decoration: BoxDecoration(
                       color: Color.fromARGB(255, 29, 29, 29),
@@ -116,12 +135,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               Padding(
                                 padding: EdgeInsets.only(right: 15),
                                 child: GestureDetector(
-                                    onTap: _submitButton,
+                                    onTap: (_isNameEdited||_isBioEdited||_isPhotoEdited)
+                                      ? _submitButton
+                                      :null,
                                     child: Text("Done",
                                         style: TextStyle(
-                                            color: Colors.blue,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600))),
+                                          color:(_isNameEdited||_isBioEdited||_isPhotoEdited)
+                                            ?Colors.blue
+                                            :Colors.grey,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w600))),
                               )
                             ],
                           )),
@@ -136,15 +159,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    height: 250,
+                    height: 300,
                     width: 330,
                     decoration: BoxDecoration(
                       color: Color.fromARGB(255, 25, 25, 25),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 0.5,
-                      ),
+                      border: Border.all(color: Colors.grey, width: 0.5,),
                     ),
                     child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -172,7 +192,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                               fontSize: 18),
                                         ),
                                         CupertinoTextField(
-                                          controller: _displayName,
+                                          controller: _displayNameController,
                                           prefix: Icon(
                                             Icons.lock_outline_rounded,
                                             size: 15,
@@ -220,19 +240,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                                 ),
                                                 child: CupertinoActionSheet(
                                                   title: Text(
-                                                      'Changer de photo de profil'),
+                                                      'Change your photo profile'),
                                                   message: Text(
-                                                      'Ta photo de profil est visible par tous et permetttra à tes amis de t\'ajoyter plus facilement'),
+                                                      'Choose an image or take a photo to set your new photo profile'),
                                                   actions: <Widget>[
                                                     CupertinoActionSheetAction(
                                                       child:
-                                                          Text('Photothèque'),
+                                                          Text('Open your gallery'),
                                                       onPressed: () {
                                                         getImage(context,
                                                             ImageSource.gallery,
                                                             (file) {
                                                           setState(() {
                                                             _image = file;
+                                                            _isPhotoEdited=true;
                                                           });
                                                         });
                                                         setState(() {});
@@ -241,32 +262,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                                     ),
                                                     CupertinoActionSheetAction(
                                                       child: Text(
-                                                          'Appareil photo'),
+                                                          'Take a new photo'),
                                                       onPressed: () {
                                                         getImage(context,
                                                             ImageSource.camera,
                                                             (file) {
                                                           setState(() {
                                                             _image = file;
+                                                            _isPhotoEdited=true;
                                                           });
                                                         });
                                                         Navigator.pop(context);
                                                       },
                                                     ),
-                                                    CupertinoActionSheetAction(
-                                                      child: Text(
-                                                        'Supprimer la photo de profil',
-                                                        style: TextStyle(
-                                                            color: Colors.red),
-                                                      ),
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                    ),
+                                                    // CupertinoActionSheetAction(
+                                                    //   child: Text(
+                                                    //     'Supprimer la photo de profil',
+                                                    //     style: TextStyle(
+                                                    //         color: Colors.red),
+                                                    //   ),
+                                                    //   onPressed: () {
+                                                    //     Navigator.pop(context);
+                                                    //   },
+                                                    // ),
                                                   ],
                                                   cancelButton:
                                                       CupertinoActionSheetAction(
-                                                    child: Text('Annuler'),
+                                                    child: Text('Cancel'),
                                                     onPressed: () {
                                                       Navigator.pop(context);
                                                     },
@@ -281,8 +303,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                             ? FileImage(_image!)
                                             : CachedNetworkImageProvider(
                                                 scale: 2,
-                                                'https://www.w3schools.com/w3images/avatar2.png',
-                                              ) as ImageProvider)),
+                                               state.currentUser?.profileImageUrl?.isNotEmpty == true 
+                                                  ? state.currentUser!.profileImageUrl!
+                                                  : 'https://www.w3schools.com/w3images/avatar2.png',
+                                              ) as ImageProvider)
+                                    ),
                                   )
                                 ],
                               ),
@@ -297,15 +322,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                         fontSize: 18),
                                   ),
                                   CupertinoTextField(
-                                    controller: _bio,
-                                    prefix: Icon(
-                                      Icons.add,
-                                      size: 15,
-                                      color: Colors.white,
-                                    ),
+                                    controller: _bioController,
+                                    prefix:state.currentUser!.biography!.isEmpty?
+                                       Icon(
+                                        Icons.add,
+                                        size: 15,
+                                        color: Colors.white,
+                                      )
+                                      :null,
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 18),
-                                    placeholder: 'Write bio',
+                                    placeholder: state.currentUser!.biography!.isNotEmpty 
+                                      ? state.currentUser!.biography 
+                                      : 'Write bio',
                                     placeholderStyle: TextStyle(
                                         color: Colors.grey, fontSize: 16),
                                     padding: EdgeInsets.all(8),
@@ -337,7 +366,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                         fontSize: 18),
                                   ),
                                   CupertinoTextField(
-                                    controller: _link,
+                                    controller: _linkController,
                                     prefix: Icon(
                                       Icons.add,
                                       size: 15,
@@ -362,8 +391,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
             )));
   }
 
-  void _submitButton() {
-    if (_displayName.text.length > 100) {
+  Future<void> _submitButton() async {
+    if (_displayNameController.text.length > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40))),
+        backgroundColor: Colors.white,
+        content: Container(
+            alignment: Alignment.center,
+            height: 30,
+            child: Text(
+              'Max Len: 100 char',
+              style: TextStyle(
+                  fontFamily: "icons.ttf",
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.w900),
+            )),
+      ));
+      return;
+    }
+    if (_bioController.text.length > 100) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -383,41 +430,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ));
       return;
     }
-    if (_bio.text.length > 100) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40), topRight: Radius.circular(40))),
-        backgroundColor: Colors.white,
-        content: Container(
-            alignment: Alignment.center,
-            height: 30,
-            child: Text(
-              'Max Len: 100 char',
-              style: TextStyle(
-                  fontFamily: "icons.ttf",
-                  color: Colors.black,
-                  fontSize: 25,
-                  fontWeight: FontWeight.w900),
-            )),
-      ));
-      return;
+    var state = Provider.of<UserProvider>(context, listen: false);
+    var model = state.currentUser!.copyWith(
+      name: _displayNameController.text,
+      biography: _bioController.text,
+    );
+    if(_isPhotoEdited)
+    {
+      await state.updateUserProfile(
+        model,
+        image: _image,
+      );
     }
-    // var state = Provider.of<UserProvider>(context, listen: false);
-    // var model = state.userModel!.copyWith(
-    //   key: state.userModel!.userId,
-    //   displayName: state.userModel!.displayName,
-    //   link: state.userModel!.link,
-    //   bio: state.userModel!.bio,
-    //   profilePic: state.userModel!.profilePic,
-    // );
-    // model.bio = _bio.text;
-    // model.displayName = _displayName.text;
-    // model.link = _link.text;
-    // state.updateUserProfile(
-    //   model,
-    //   image: _image,
-    // );
-    Navigator.pop(context);
+    else{
+      await state.updateUserProfile(
+        model,
+      );
+    }
+    
+    Navigator.pop(context,true);
   }
 }
