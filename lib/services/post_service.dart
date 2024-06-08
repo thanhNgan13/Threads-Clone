@@ -118,3 +118,60 @@ Future<void> addComment(String postID) async {
 //     });
 //   }
 // }
+
+Future<void> deletePost(String postId, String userId) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference postRef = firestore.collection('posts').doc(postId);
+  CollectionReference usersRef = firestore.collection('users');
+
+  try {
+    await firestore.runTransaction((transaction) async {
+      DocumentSnapshot postSnapshot = await transaction.get(postRef);
+      if (!postSnapshot.exists) {
+        throw Exception("Post does not exist!");
+      }
+
+      // Update users who liked this post, if any
+      List<dynamic> likedUsers = postSnapshot.get('likedUsers') ?? [];
+      for (String likedUserId in likedUsers) {
+        DocumentReference likedUserRef = usersRef.doc(likedUserId);
+        transaction.update(likedUserRef, {
+          'likedPosts': FieldValue.arrayRemove([postId])
+        });
+      }
+
+      // Decrement postsCount for the user who owns the post, if tracked
+      DocumentReference userPostingRef = usersRef.doc(userId);
+      transaction
+          .update(userPostingRef, {'postsCount': FieldValue.increment(-1)});
+
+      // Finally, delete the post itself
+      transaction.delete(postRef);
+    });
+  } catch (error) {
+    print('Failed to delete post and associated data: $error');
+    throw Exception('Failed to delete post');
+  }
+}
+
+Future<void> updatePostBio(String postId, String newBio) async {
+  DocumentReference postRef =
+      FirebaseFirestore.instance.collection('posts').doc(postId);
+
+  try {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot postSnapshot = await transaction.get(postRef);
+
+      if (!postSnapshot.exists) {
+        throw Exception("Post document does not exist!");
+      }
+
+      transaction.update(postRef, {
+        'bio': newBio,
+      });
+    });
+  } catch (error) {
+    print('Failed to update post bio: $error');
+    throw Exception('Failed to update post bio');
+  }
+}

@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
 import 'package:final_exercises/screens/listPost/detail/detailPage.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:debounce_throttle/debounce_throttle.dart';
-
-import '../../services/post_service.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:final_exercises/screens/listPost/detail/EditPostScreen.dart';
+import 'package:final_exercises/services/post_service.dart';
 
 class FeedPost extends StatefulWidget {
-  final PostModel postModel;
+  late final PostModel postModel;
   final String? currentUserId;
   final VoidCallback? onItemTap;
 
@@ -20,7 +19,7 @@ class FeedPost extends StatefulWidget {
       {super.key, required this.postModel, this.currentUserId, this.onItemTap});
 
   @override
-  State<FeedPost> createState() => _FeedPostState();
+  _FeedPostState createState() => _FeedPostState();
 }
 
 class _FeedPostState extends State<FeedPost> {
@@ -36,13 +35,13 @@ class _FeedPostState extends State<FeedPost> {
   @override
   void initState() {
     super.initState();
-    // Kiểm tra độ dài của văn bản và cập nhật trạng thái showMoreButton
     if (widget.postModel.bio != null && widget.postModel.bio!.length > 500) {
       showMoreButton = true;
     }
     likeCount = widget.postModel.likes ?? 0;
     commentCount = widget.postModel.commentsCount ?? 0;
-    isLiked = widget.postModel.likedUsers!.contains(widget.currentUserId);
+    isLiked =
+        widget.postModel.likedUsers?.contains(widget.currentUserId) ?? false;
     textHeight = calculateTextHeight(
         widget.postModel.bio!,
         TextStyle(color: Colors.white),
@@ -59,13 +58,12 @@ class _FeedPostState extends State<FeedPost> {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: TextDirection.ltr,
-      maxLines: null, // Đặt số dòng tối đa hoặc null nếu không giới hạn số dòng
+      maxLines: null,
     )..layout(maxWidth: maxWidth);
 
     return textPainter.size.height;
   }
 
-  // Hàm xử lý sự kiện nhấn vào biểu tượng like
   void _toggleLike() async {
     if (isLiked) {
       await unlikePost(widget.postModel, widget.currentUserId!);
@@ -94,6 +92,59 @@ class _FeedPostState extends State<FeedPost> {
         });
       });
     }
+  }
+
+  void _editPost() {
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //       builder: (context) => EditPostScreen(postModel: widget.postModel)),
+    // ).then((updatedPost) {
+    //   if (updatedPost != null) {
+    //     setState(() {
+    //       widget.postModel = updatedPost;
+    //     });
+    //   }
+    // });
+  }
+
+  void _deletePost() async {
+    // if (widget.postModel.key == null || widget.currentUserId == null) {
+    //   print('Error: Post key or currentUserId is null.');
+    //   return;
+    // }
+
+    // bool? confirmed = await showDialog(
+    //   context: context,
+    //   builder: (context) => AlertDialog(
+    //     title: Text('Delete Post'),
+    //     content: Text('Are you sure you want to delete this post?'),
+    //     actions: [
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, false),
+    //         child: Text('Cancel', style: TextStyle(color: Colors.blue)),
+    //       ),
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, true),
+    //         child: Text('Delete', style: TextStyle(color: Colors.red)),
+    //       ),
+    //     ],
+    //   ),
+    // );
+
+    // if (confirmed == true) {
+    //   try {
+    //     await deletePost(widget.postModel.key!, widget.currentUserId!);
+    //     if (Navigator.canPop(context)) {
+    //       Navigator.pop(context); // Navigate back to the previous screen
+    //     }
+    //   } catch (e) {
+    //     print('Failed to delete post: $e');
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(content: Text('Failed to delete post. Please try again.')),
+    //     );
+    //   }
+    // }
   }
 
   @override
@@ -133,10 +184,10 @@ class _FeedPostState extends State<FeedPost> {
                 CircleAvatar(
                   radius: 20,
                   backgroundImage: NetworkImage(
-                      widget.postModel.user!.profileImageUrl.toString()),
+                      widget.postModel.user?.profileImageUrl ?? ''),
                 ),
                 Text(
-                  widget.postModel.user!.username.toString(),
+                  widget.postModel.user?.username ?? '',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -153,19 +204,48 @@ class _FeedPostState extends State<FeedPost> {
                 Container(
                   width: 5,
                 ),
-                Icon(Icons.more_horiz, color: Colors.white)
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_horiz, color: Colors.white),
+                  onSelected: (String value) {
+                    if (value == 'Edit') {
+                      _editPost();
+                    } else if (value == 'Delete') {
+                      try {
+                        _deletePost();
+                      } catch (e) {
+                        print('Failed to delete post: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Failed to delete post. Please try again.')),
+                        );
+                      }
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return {'Edit', 'Delete'}.map((String choice) {
+                      return PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(choice),
+                      );
+                    }).toList();
+                  },
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  offset: Offset(0, -10),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Padding(
               padding: EdgeInsets.only(left: 30),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment
-                    .start, // Đảm bảo các widget con được căn từ trên xuống
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
+                    padding: const EdgeInsets.only(right: 15.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -177,7 +257,7 @@ class _FeedPostState extends State<FeedPost> {
                         const SizedBox(width: 25),
                         Expanded(
                           child: Text(
-                            widget.postModel.bio.toString(),
+                            widget.postModel.bio ?? '',
                             maxLines: isExpanded ? null : 10,
                             overflow: isExpanded
                                 ? TextOverflow.visible
@@ -225,9 +305,9 @@ class _FeedPostState extends State<FeedPost> {
                                     height: 15,
                                     width: 15,
                                     child: CachedNetworkImage(
-                                      imageUrl: widget
-                                          .postModel.user!.profileImageUrl
-                                          .toString(),
+                                      imageUrl: widget.postModel.user
+                                              ?.profileImageUrl ??
+                                          '',
                                     ))),
                           ],
                         ),
@@ -255,9 +335,9 @@ class _FeedPostState extends State<FeedPost> {
                                       height: 15,
                                       width: 15,
                                       child: CachedNetworkImage(
-                                        imageUrl: widget
-                                            .postModel.user!.profileImageUrl
-                                            .toString(),
+                                        imageUrl: widget.postModel.user
+                                                ?.profileImageUrl ??
+                                            '',
                                       ))),
                             ],
                           ),
@@ -272,8 +352,8 @@ class _FeedPostState extends State<FeedPost> {
                                         height: 300,
                                         width: 290,
                                         fit: BoxFit.cover,
-                                        imageUrl: widget.postModel.imagePath
-                                            .toString()))),
+                                        imageUrl:
+                                            widget.postModel.imagePath ?? ''))),
                       ],
                     ),
                   ),
@@ -283,7 +363,6 @@ class _FeedPostState extends State<FeedPost> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(width: 40),
-                    // Button like
                     IconButton(
                       onPressed: onPressedValue ? _toggleLike : null,
                       icon: Icon(
@@ -319,7 +398,6 @@ class _FeedPostState extends State<FeedPost> {
                         size: 20,
                       ),
                     ),
-
                     IconButton(
                       onPressed: () {},
                       icon: Icon(
@@ -336,8 +414,7 @@ class _FeedPostState extends State<FeedPost> {
                       width: 50,
                     ),
                     Text('$likeCount likes',
-                        style: TextStyle(
-                            color: Colors.grey)), // Hiển thị số lượng like
+                        style: TextStyle(color: Colors.grey)),
                     SizedBox(width: 10),
                     Text('$commentCount replies',
                         style: TextStyle(color: Colors.grey)),
