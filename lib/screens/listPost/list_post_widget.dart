@@ -1,12 +1,10 @@
+import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/listPost/feedpost.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-
-import '../../helper/utility.dart';
 
 class ListPostWidget extends StatefulWidget {
   const ListPostWidget({super.key});
@@ -17,9 +15,6 @@ class ListPostWidget extends StatefulWidget {
 
 class _ListPostWidgetState extends State<ListPostWidget> {
   ScrollController _scrollController = ScrollController();
-
-  bool isExpanded = false;
-  bool showMoreButton = false;
 
   String imagePath =
       "https://fastly.picsum.photos/id/9/250/250.jpg?hmac=tqDH5wEWHDN76mBIWEPzg1in6egMl49qZeguSaH9_VI";
@@ -51,33 +46,39 @@ class _ListPostWidgetState extends State<ListPostWidget> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: Consumer<PostState>(
-        builder: (context, state, child) {
-          if (state.isBusy) {
+      body: StreamBuilder<List<PostModel>>(
+        stream: Provider.of<PostState>(context).feedStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
-          } else if (state.feedlist == null || state.feedlist!.isEmpty) {
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
                 child: Text(
               'No posts available',
               style: TextStyle(color: Colors.white),
             ));
-          } else {
-            return RefreshIndicator(
-              onRefresh: _refreshPosts,
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: state.feedlist!.length,
-                itemBuilder: (context, index) {
-                  return FeedPost(
-                    postModel: state.feedlist![index],
-                    currentUserId:
-                        Provider.of<UserProvider>(context).currentUser?.id,
-                    onItemTap: _refreshPosts,
-                  );
-                },
-              ),
-            );
           }
+          List<PostModel> posts = snapshot.data!;
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                return FeedPost(
+                  postModel: posts[index],
+                  currentUserId:
+                      Provider.of<UserProvider>(context, listen: false)
+                          .currentUser
+                          ?.id,
+                  onItemTap: _refreshPosts,
+                );
+              },
+            ),
+          );
         },
       ),
     );

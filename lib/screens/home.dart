@@ -54,11 +54,6 @@ class _BodyWidgetState extends State<BodyWidget> {
     setState(() {
       _selectedIndex = 0;
     });
-    _refreshPosts();
-  }
-
-  Future<void> _refreshPosts() async {
-    await Provider.of<PostState>(context, listen: false).getPosts();
   }
 
   final List<BottomNavItem> bottomNavItems = [

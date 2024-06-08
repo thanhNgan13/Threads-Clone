@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:final_exercises/helper/utility.dart';
 import 'package:final_exercises/models/post.dart';
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPage.dart';
 import 'package:final_exercises/screens/listPost/comments/commentPost.dart';
@@ -19,7 +20,7 @@ class DetailPage extends StatefulWidget {
   DetailPage({super.key, required this.postModel, required this.currentUserId});
 
   @override
-  State<DetailPage> createState() => _DetailPageState();
+  _DetailPageState createState() => _DetailPageState();
 }
 
 class _DetailPageState extends State<DetailPage> {
@@ -81,6 +82,9 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final currentUser = userProvider.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(

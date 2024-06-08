@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/models/user.dart';
 import 'package:final_exercises/providers/app.state.dart';
-import 'package:firebase_database/firebase_database.dart' as dabase;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
@@ -18,10 +17,6 @@ class PostState extends AppStates {
   }
 
   List<PostModel>? _feedlist;
-  List<PostModel>? _postDetailModelList;
-
-  List<PostModel>? get postDetailModel => _postDetailModelList;
-
   List<PostModel>? get feedlist {
     if (_feedlist == null) {
       return null;
@@ -34,13 +29,34 @@ class PostState extends AppStates {
       FirebaseFirestore.instance.collection('posts');
 
   List<PostModel>? _feedlistForUser;
-
   List<PostModel>? get feedlistForUser {
     if (_feedlistForUser == null) {
       return null;
     } else {
       return List.from(_feedlistForUser!.reversed);
     }
+  }
+
+  // Real-time stream for all posts
+  Stream<List<PostModel>> get feedStream {
+    return postsCollection
+        .orderBy('createdAt', descending: false)
+        .where('keyReply', isNull: true)
+        .snapshots()
+        .map(
+      (snapshot) {
+        return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+      },
+    );
+  }
+
+  // Real-time stream for posts by a specific user
+  Stream<List<PostModel>> getFeedListForUserStream(String userId) {
+    return postsCollection.where('user.id', isEqualTo: userId).snapshots().map(
+      (snapshot) {
+        return snapshot.docs.map((doc) => PostModel.fromDocument(doc)).toList();
+      },
+    );
   }
 
   List<PostModel>? _feedlistForPost;
@@ -58,13 +74,8 @@ class PostState extends AppStates {
     notifyListeners();
     String? postKey;
     try {
-      // Tham chiếu đến bộ sưu tập 'posts' trong Firestore
       DocumentReference docRef = await postsCollection.add(model.toJson());
-
-      // Lấy ID tài liệu duy nhất từ Firestore
       postKey = docRef.id;
-
-      // Cập nhật key cho PostModel
       await docRef.update({'key': postKey});
     } catch (error) {
       print('Error creating post: $error');
@@ -78,26 +89,19 @@ class PostState extends AppStates {
     try {
       isBusy = true;
       notifyListeners();
-
-      // Tạo tham chiếu đến vị trí mà bạn muốn tải lên trong Firebase Storage
       var storageReference = FirebaseStorage.instance
           .ref()
           .child("threadsImage")
           .child(path
               .basename('${DateTime.now().toIso8601String()}_${file.path}'));
 
-      // Tải lên tệp tin đến tham chiếu đã chỉ định
       UploadTask uploadTask = storageReference.putFile(file);
-
-      // Chờ cho đến khi việc tải lên hoàn tất
       await uploadTask;
-
-      // Lấy URL tải xuống của tệp tin đã tải lên
       String downloadUrl = await storageReference.getDownloadURL();
 
       return downloadUrl;
     } catch (error) {
-      print('Lỗi khi tải lên tệp: $error');
+      print('Error uploading file: $error');
       return null;
     } finally {
       isBusy = false;
@@ -143,6 +147,42 @@ class PostState extends AppStates {
     _postDetailModelList ??= [];
     _postDetailModelList!.add(model);
     notifyListeners();
+  }
+
+  List<PostModel>? _postDetailModelList;
+
+  // Getter for the post details model list
+  List<PostModel>? get postDetailModel => _postDetailModelList;
+
+  void deleteOldPosts() async {
+    final int daysThreshold = 30; // Number of days after which to delete a post
+    try {
+      isBusy = true;
+      notifyListeners();
+      var cutoffDate = DateTime.now().subtract(Duration(days: daysThreshold));
+      var oldPosts = await postsCollection
+          .where('createdAt', isLessThanOrEqualTo: cutoffDate)
+          .get();
+
+      for (var doc in oldPosts.docs) {
+        await deletePost(doc
+            .id); // Assuming deletePost method handles both Firestore and any linked storage
+      }
+    } catch (error) {
+      print('Error deleting old posts: $error');
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      await postsCollection.doc(postId).delete();
+      // Optionally, delete associated resources like images from Firebase Storage if needed
+    } catch (error) {
+      print('Error deleting post: $error');
+    }
   }
 
   Future<void> getPostsByPostIdRepply(String postID) async {
