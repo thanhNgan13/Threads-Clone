@@ -26,6 +26,7 @@ class _DetailMyPostState extends State<DetailMyPost> {
   bool isLiked = false;
   Timer? _timer;
   bool onPressedValue = true;
+  bool isDeleting = false;
 
   @override
   void initState() {
@@ -76,6 +77,18 @@ class _DetailMyPostState extends State<DetailMyPost> {
         });
       });
     }
+  }
+
+  void _showDeletingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
   }
 
   @override
@@ -182,14 +195,11 @@ class _DetailMyPostState extends State<DetailMyPost> {
                                               ),
                                               TextButton(
                                                 onPressed: () async {
-                                                  print('Delete post');
-                                                  await deletePost(
-                                                      widget.postModel.key!,
-                                                      widget.currentUserId);
-
                                                   Navigator.of(context)
-                                                      .pop(); // Đóng dialog
-                                                  // Thêm logic xóa bài viết ở đây
+                                                      .pop(); // Đóng dialog xác nhận
+                                                  await queryPostsByCommentID(
+                                                    widget.postModel.key!,
+                                                  );
                                                 },
                                                 child: Text('Delete',
                                                     style: TextStyle(

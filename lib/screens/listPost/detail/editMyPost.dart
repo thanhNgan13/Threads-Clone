@@ -13,11 +13,13 @@ class EditPostBioScreen extends StatefulWidget {
 class _EditPostBioScreenState extends State<EditPostBioScreen> {
   final TextEditingController _bioController = TextEditingController();
   bool _isLoading = false;
+  String _initialBio = '';
 
   @override
   void initState() {
     super.initState();
     _fetchCurrentBio();
+    _bioController.addListener(_checkForChanges);
   }
 
   Future<void> _fetchCurrentBio() async {
@@ -33,6 +35,7 @@ class _EditPostBioScreenState extends State<EditPostBioScreen> {
 
       if (postSnapshot.exists) {
         String currentBio = postSnapshot.get('bio') ?? '';
+        _initialBio = currentBio;
         _bioController.text = currentBio;
       } else {
         throw Exception("Post document does not exist!");
@@ -47,6 +50,10 @@ class _EditPostBioScreenState extends State<EditPostBioScreen> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void _checkForChanges() {
+    setState(() {});
   }
 
   Future<void> updatePostBio(String postId, String newBio) async {
@@ -95,12 +102,16 @@ class _EditPostBioScreenState extends State<EditPostBioScreen> {
 
   @override
   void dispose() {
+    _bioController.removeListener(_checkForChanges);
     _bioController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isUpdateButtonEnabled =
+        _bioController.text != _initialBio && !_isLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Post Bio'),
@@ -132,9 +143,30 @@ class _EditPostBioScreenState extends State<EditPostBioScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   )
                 : ElevatedButton(
-                    onPressed: _submit,
-                    child: Text('Update Bio',
-                        style: TextStyle(color: Colors.black)),
+                    onPressed: isUpdateButtonEnabled ? _submit : null,
+                    child: Text(
+                      'Update Bio',
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.disabled))
+                            return Color.fromARGB(
+                                255, 80, 75, 75); // Màu khi bị disable
+                          return const Color.fromARGB(
+                              255, 255, 255, 255); // Màu khi enable
+                        },
+                      ),
+                      foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.disabled))
+                            return Color.fromARGB(
+                                66, 0, 0, 0); // Màu chữ khi bị disable
+                          return Color.fromARGB(
+                              255, 0, 0, 0); // Màu chữ khi enable
+                        },
+                      ),
+                    ),
                   ),
           ],
         ),

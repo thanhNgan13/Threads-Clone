@@ -1,7 +1,9 @@
+import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
+import 'package:final_exercises/screens/notification/notipage.dart';
 import 'package:flutter/material.dart';
 import 'package:final_exercises/screens/composePost/newPost.dart';
-import 'package:final_exercises/screens/notification/notification_widget.dart';
+
 import 'package:final_exercises/screens/homepage_widgets/search_widget.dart';
 import 'package:final_exercises/screens/listPost/list_post_widget.dart';
 import 'package:final_exercises/screens/profilepage/myprofile.dart';
@@ -39,7 +41,7 @@ class _BodyWidgetState extends State<BodyWidget> {
       const ListPostWidget(),
       const SearchWidget(),
       ComposePost(navigateToHome: _navigateToHome),
-      const NotificationPage(),
+      InfoCommentsPage(),
       const MyProfilePage()
     ];
   }

@@ -2,7 +2,6 @@ import 'package:final_exercises/firebase_options.dart';
 import 'package:final_exercises/providers/UserProvider.dart';
 import 'package:final_exercises/providers/post.state.dart';
 import 'package:final_exercises/providers/search.state.dart';
-import 'package:final_exercises/screens/home.dart';
 import 'package:final_exercises/screens/splash.dart';
 import 'package:final_exercises/views/theme/light_mode.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,10 +26,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => SearchState()),
       ],
       child: MaterialApp(
-          routes: {
-            '/home': (context) =>
-                SplashPage(), // Route mặc định, thường là trang chính
-          },
           debugShowCheckedModeBanner: false,
           theme: lightMode,
           // darkTheme: darkMode,

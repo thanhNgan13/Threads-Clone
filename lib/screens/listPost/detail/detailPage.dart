@@ -14,7 +14,7 @@ class DetailPage extends StatefulWidget {
   final PostModel postModel;
   final String? currentUserId;
 
-  DetailPage({super.key, required this.postModel, required this.currentUserId});
+  DetailPage({super.key, required this.postModel, this.currentUserId});
 
   @override
   _DetailPageState createState() => _DetailPageState();
