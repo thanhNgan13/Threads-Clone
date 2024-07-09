@@ -61,6 +61,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     final currentUserId = authState.currentUser?.id;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -70,6 +71,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                   style: AppStyles.h4.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 26,
+                    color: Colors.white,
                   )),
               Container(
                 width: double.infinity,
@@ -147,60 +149,79 @@ class SuggestedUserWidget extends StatefulWidget {
 class _SuggestedUserWidgetState extends State<SuggestedUserWidget> {
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: Image.network(widget.user.profileImageUrl!).image,
-      ),
-      title: Text(widget.user.name!,
-          style: AppStyles.h5.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text('@${widget.user.username}', style: AppStyles.h5),
-      trailing: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.currentUserId) // Sử dụng currentUserId từ widget
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            }
-            if (!snapshot.hasData || snapshot.data!.data() == null) {
-              return const SizedBox();
-            }
-            final currentUser = UserModel.fromMap(
-                snapshot.data!.data() as Map<String, dynamic>);
-            final isFollowing = currentUser.following!.contains(widget.user.id);
-            return InkWell(
-              onTap: isFollowing ? widget.onUnfollow : widget.onFollow,
-              child: Container(
-                width: 110,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 1,
-                  ),
-                ),
-                child: isFollowing
-                    ? Text(
-                        'Unfollow',
-                        style: AppStyles.h5.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                        ),
-                      )
-                    : Text(
-                        'Follow',
-                        style: AppStyles.h5.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border.all(
+            color: const Color.fromARGB(255, 95, 91, 91),
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(12.0), // Tạo viền bo tròn
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage: Image.network(widget.user.profileImageUrl!).image,
+          ),
+          title: Text(widget.user.name!,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              )),
+          subtitle: Text('@${widget.user.username}',
+              style: TextStyle(color: Colors.grey)),
+          trailing: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.currentUserId) // Sử dụng currentUserId từ widget
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+                if (!snapshot.hasData || snapshot.data!.data() == null) {
+                  return const SizedBox();
+                }
+                final currentUser = UserModel.fromMap(
+                    snapshot.data!.data() as Map<String, dynamic>);
+                final isFollowing =
+                    currentUser.following!.contains(widget.user.id);
+                return InkWell(
+                  onTap: isFollowing ? widget.onUnfollow : widget.onFollow,
+                  child: Container(
+                    width: 110,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
                       ),
-              ),
-            );
-          }),
+                    ),
+                    child: isFollowing
+                        ? Text(
+                            'Unfollow',
+                            style: AppStyles.h5.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
+                          )
+                        : Text(
+                            'Follow',
+                            style: AppStyles.h5.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                  ),
+                );
+              }),
+        ),
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/models/user.dart';
-import 'package:final_exercises/services/post_service.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UserService {

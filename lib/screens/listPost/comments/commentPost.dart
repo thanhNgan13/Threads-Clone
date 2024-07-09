@@ -9,8 +9,6 @@ import 'package:final_exercises/screens/composePost/widget/composeBottomIconWidg
 import 'package:final_exercises/services/post_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 class FeedPostDetail extends StatefulWidget {
@@ -33,6 +31,7 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
   bool select = false;
   int nums = 0;
   bool isButtonEnabled = false;
+  bool _isLoading = false;
   final GlobalKey _textFieldKey = GlobalKey();
   double textFieldHeight = 0.0;
   final GlobalKey _containerKey = GlobalKey();
@@ -46,7 +45,7 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
     });
   }
 
-  void _submitButton(String postIdCurrent) async {
+  Future<String?> _submitButton(String postIdCurrent) async {
     if (_textEditingController.text.length > 280) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         shape: RoundedRectangleBorder(
@@ -65,9 +64,13 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
                   fontWeight: FontWeight.w900),
             )),
       ));
-      return;
+      return '';
     }
-    if (_textEditingController.text.isEmpty) return;
+    if (_textEditingController.text.isEmpty) return '';
+
+    setState(() {
+      _isLoading = true;
+    });
 
     var state = Provider.of<PostState>(context, listen: false);
 
@@ -89,10 +92,13 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
     _textEditingController.clear();
     setState(() {
       _file = null;
+      _isLoading = false;
     });
+
+    return postId!;
   }
 
-  Future createPostModel(String postIdCurrent) async {
+  Future<PostModel> createPostModel(String postIdCurrent) async {
     var profilePic = widget.userModel.profileImageUrl ?? '';
 
     var postedUser = UserModel(
@@ -176,336 +182,355 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.only(left: 5.0, top: 10.0, bottom: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.network(
-                        widget.postModel.user!.profileImageUrl.toString(),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    widget.postModel.user!.username.toString(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: 25),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 2,
-                    height: textHeight,
-                    color: const Color.fromARGB(255, 46, 46, 46),
-                  ),
-                  const SizedBox(width: 25),
-                  Expanded(
-                    child: Text(
-                      widget.postModel.bio.toString(),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            widget.postModel.imagePath == null
-                ? Column(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 5.0, top: 10.0, bottom: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundImage: NetworkImage(widget
-                                    .userModel.profileImageUrl
-                                    .toString()),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              widget.userModel.username.toString(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                      Container(
+                        width: 40,
+                        height: 40,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            widget.postModel.user!.profileImageUrl.toString(),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Padding(
-                          padding: EdgeInsets.only(left: 25),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 2,
-                                height: textFieldHeight,
-                                color: const Color.fromARGB(255, 46, 46, 46),
-                              ),
-                              const SizedBox(width: 25),
-                              Expanded(
-                                child: TextField(
-                                  key: _textFieldKey,
-                                  controller: _textEditingController,
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: "Reply to this post " +
-                                        widget.postModel.user!.username
-                                            .toString(),
-                                    hintStyle: TextStyle(
-                                      fontSize: 15,
-                                      color: Color.fromARGB(255, 112, 112, 112),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  maxLines: null,
-                                  keyboardType: TextInputType.multiline,
-                                  minLines: 1,
-                                  cursorColor: Colors.white,
-                                  cursorHeight: 20,
-                                  cursorWidth: 2,
-                                  cursorRadius: Radius.circular(10),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      nums = value.length;
-                                      isButtonEnabled = value.isNotEmpty;
-                                      _updateTextFieldHeight();
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          )),
-                      Padding(
-                          padding: EdgeInsets.only(left: 25),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 15),
-                              ComposeBottomIconWidget(
-                                textEditingController: _textEditingController,
-                                onImageIconSelcted: _onImageIconSelcted,
-                              ),
-                            ],
-                          )),
-                      Container(
-                        width: MediaQuery.of(context).size.width / 1.12,
-                        height: MediaQuery.of(context).size.height / 2,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2)),
-                        child: _file == null
-                            ? SizedBox.shrink()
-                            : Stack(
-                                children: [
-                                  Image.file(_file!),
-                                  Positioned(
-                                    top: 5,
-                                    right: 5,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _file = null;
-                                          isButtonEnabled = false;
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      Padding(
-                          padding: EdgeInsets.only(left: 25, right: 10),
-                          child: widget.postModel.imagePath == null
-                              ? SizedBox.shrink()
-                              : Row(
-                                  children: [
-                                    Container(
-                                      width: 2,
-                                      height: 300,
-                                      color:
-                                          const Color.fromARGB(255, 46, 46, 46),
-                                    ),
-                                    const SizedBox(width: 25),
-                                    Expanded(
-                                      child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          child: CachedNetworkImage(
-                                              height: 300,
-                                              width: 290,
-                                              fit: BoxFit.cover,
-                                              imageUrl: widget
-                                                  .postModel.imagePath
-                                                  .toString())),
-                                    ),
-                                  ],
-                                )),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundImage: NetworkImage(widget
-                                    .userModel.profileImageUrl
-                                    .toString()),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              widget.userModel.username.toString(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 10),
+                      Text(
+                        widget.postModel.user!.username.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Padding(
-                          padding: EdgeInsets.only(left: 25),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 2,
-                                height: textFieldHeight,
-                                color: const Color.fromARGB(255, 46, 46, 46),
-                              ),
-                              const SizedBox(width: 25),
-                              Expanded(
-                                child: TextField(
-                                  key: _textFieldKey,
-                                  controller: _textEditingController,
-                                  style: TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                    hintText: "Reply to this post " +
-                                        widget.postModel.user!.username
-                                            .toString(),
-                                    hintStyle: TextStyle(
-                                      fontSize: 15,
-                                      color: Color.fromARGB(255, 112, 112, 112),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  maxLines: null,
-                                  keyboardType: TextInputType.multiline,
-                                  minLines: 1,
-                                  cursorColor: Colors.white,
-                                  cursorHeight: 20,
-                                  cursorWidth: 2,
-                                  cursorRadius: Radius.circular(10),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      nums = value.length;
-                                      isButtonEnabled = value.isNotEmpty;
-                                      _updateTextFieldHeight();
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          )),
-                      Padding(
-                          padding: EdgeInsets.only(left: 25),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 15),
-                              ComposeBottomIconWidget(
-                                textEditingController: _textEditingController,
-                                onImageIconSelcted: _onImageIconSelcted,
-                              ),
-                            ],
-                          )),
-                      Container(
-                        width: MediaQuery.of(context).size.width / 1.12,
-                        height: MediaQuery.of(context).size.height / 2,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2)),
-                        child: _file == null
-                            ? SizedBox.shrink()
-                            : Stack(
-                                children: [
-                                  Image.file(_file!),
-                                  Positioned(
-                                    top: 5,
-                                    right: 5,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _file = null;
-                                          isButtonEnabled = false;
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                       ),
                     ],
                   ),
-          ],
-        ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 25),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 2,
+                        height: textHeight,
+                        color: const Color.fromARGB(255, 46, 46, 46),
+                      ),
+                      const SizedBox(width: 25),
+                      Expanded(
+                        child: Text(
+                          widget.postModel.bio.toString(),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                widget.postModel.imagePath == null
+                    ? Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: NetworkImage(widget
+                                        .userModel.profileImageUrl
+                                        .toString()),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  widget.userModel.username.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Padding(
+                              padding: EdgeInsets.only(left: 25),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 2,
+                                    height: textFieldHeight,
+                                    color:
+                                        const Color.fromARGB(255, 46, 46, 46),
+                                  ),
+                                  const SizedBox(width: 25),
+                                  Expanded(
+                                    child: TextField(
+                                      key: _textFieldKey,
+                                      controller: _textEditingController,
+                                      style: TextStyle(color: Colors.white),
+                                      decoration: InputDecoration(
+                                        hintText: "Reply to this post " +
+                                            widget.postModel.user!.username
+                                                .toString(),
+                                        hintStyle: TextStyle(
+                                          fontSize: 15,
+                                          color: Color.fromARGB(
+                                              255, 112, 112, 112),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        border: InputBorder.none,
+                                      ),
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
+                                      minLines: 1,
+                                      cursorColor: Colors.white,
+                                      cursorHeight: 20,
+                                      cursorWidth: 2,
+                                      cursorRadius: Radius.circular(10),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          nums = value.length;
+                                          isButtonEnabled = value.isNotEmpty;
+                                          _updateTextFieldHeight();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )),
+                          Padding(
+                              padding: EdgeInsets.only(left: 25),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 15),
+                                  ComposeBottomIconWidget(
+                                    textEditingController:
+                                        _textEditingController,
+                                    onImageIconSelcted: _onImageIconSelcted,
+                                  ),
+                                ],
+                              )),
+                          Container(
+                            width: MediaQuery.of(context).size.width / 1.12,
+                            height: MediaQuery.of(context).size.height / 2,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2)),
+                            child: _file == null
+                                ? SizedBox.shrink()
+                                : Stack(
+                                    children: [
+                                      Image.file(_file!),
+                                      Positioned(
+                                        top: 5,
+                                        right: 5,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _file = null;
+                                              isButtonEnabled = false;
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.black.withOpacity(0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          Padding(
+                              padding: EdgeInsets.only(left: 25, right: 10),
+                              child: widget.postModel.imagePath == null
+                                  ? SizedBox.shrink()
+                                  : Row(
+                                      children: [
+                                        Container(
+                                          width: 2,
+                                          height: 300,
+                                          color: const Color.fromARGB(
+                                              255, 46, 46, 46),
+                                        ),
+                                        const SizedBox(width: 25),
+                                        Expanded(
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              child: CachedNetworkImage(
+                                                  height: 300,
+                                                  width: 290,
+                                                  fit: BoxFit.cover,
+                                                  imageUrl: widget
+                                                      .postModel.imagePath
+                                                      .toString())),
+                                        ),
+                                      ],
+                                    )),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: NetworkImage(widget
+                                        .userModel.profileImageUrl
+                                        .toString()),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  widget.userModel.username.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Padding(
+                              padding: EdgeInsets.only(left: 25),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 2,
+                                    height: textFieldHeight,
+                                    color:
+                                        const Color.fromARGB(255, 46, 46, 46),
+                                  ),
+                                  const SizedBox(width: 25),
+                                  Expanded(
+                                    child: TextField(
+                                      key: _textFieldKey,
+                                      controller: _textEditingController,
+                                      style: TextStyle(color: Colors.white),
+                                      decoration: InputDecoration(
+                                        hintText: "Reply to this post " +
+                                            widget.postModel.user!.username
+                                                .toString(),
+                                        hintStyle: TextStyle(
+                                          fontSize: 15,
+                                          color: Color.fromARGB(
+                                              255, 112, 112, 112),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        border: InputBorder.none,
+                                      ),
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
+                                      minLines: 1,
+                                      cursorColor: Colors.white,
+                                      cursorHeight: 20,
+                                      cursorWidth: 2,
+                                      cursorRadius: Radius.circular(10),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          nums = value.length;
+                                          isButtonEnabled = value.isNotEmpty;
+                                          _updateTextFieldHeight();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )),
+                          Padding(
+                              padding: EdgeInsets.only(left: 25),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 15),
+                                  ComposeBottomIconWidget(
+                                    textEditingController:
+                                        _textEditingController,
+                                    onImageIconSelcted: _onImageIconSelcted,
+                                  ),
+                                ],
+                              )),
+                          Container(
+                            width: MediaQuery.of(context).size.width / 1.12,
+                            height: MediaQuery.of(context).size.height / 2,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(2)),
+                            child: _file == null
+                                ? SizedBox.shrink()
+                                : Stack(
+                                    children: [
+                                      Image.file(_file!),
+                                      Positioned(
+                                        top: 5,
+                                        right: 5,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _file = null;
+                                              isButtonEnabled = false;
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.black.withOpacity(0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+              ],
+            ),
+          ),
+          if (_isLoading)
+            Center(
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: BottomAppBar(
         height: 60.0,
@@ -523,53 +548,31 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
                     color: Color.fromARGB(255, 112, 112, 112), fontSize: 14),
               ),
               ElevatedButton(
-                onPressed: isButtonEnabled
+                onPressed: isButtonEnabled && !_isLoading
                     ? () async {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    360.0), // Định hình là hình tròn
-                              ),
-                              child: SizedBox(
-                                width:
-                                    20.0, // Đảm bảo rằng kích thước phù hợp với hình dạng hình tròn
-                                height:
-                                    20.0, // Đảm bảo rằng kích thước phù hợp với hình dạng hình tròn
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.blue),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-
                         String postIdCurrent = widget.postModel.key!;
-
-                        _submitButton(postIdCurrent);
-                        await addComment(postIdCurrent);
-
+                        String text = _textEditingController.text;
+                        String? postComment =
+                            await _submitButton(postIdCurrent);
+                        await addInfoComment(postIdCurrent, postComment!,
+                            widget.userModel.id!, text);
                         setState(() {
                           _textEditingController.clear();
                           isButtonEnabled = false;
                         });
-
                         await Future.delayed(
                             Duration(seconds: 2)); // Wait for 2 seconds
                         Navigator.pop(context); // Close the dialog
                       }
                     : null,
-                child: Text(
-                  "Reply",
-                  style: TextStyle(color: Colors.black),
-                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(
+                        color: Colors.black,
+                      )
+                    : Text(
+                        "Reply",
+                        style: TextStyle(color: Colors.black),
+                      ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.resolveWith<Color>(
                     (Set<MaterialState> states) {
@@ -588,7 +591,7 @@ class _FeedPostDetailState extends State<FeedPostDetail> {
                     },
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

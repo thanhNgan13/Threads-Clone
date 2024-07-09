@@ -29,6 +29,21 @@ class _ProfilePageState extends State<MyProfilePage>
     _tabController = TabController(length: 2, vsync: this);
   }
 
+  void getPostsByCommentID() async {
+    String postIDComment = 'Bp5O2v9UrD4C3Tg3A4LR';
+    try {
+      List<PostModel> posts = await queryPostsByCommentID(postIDComment);
+      if (posts.isNotEmpty) {
+        print("Found ${posts.length} posts with comment ID $postIDComment.");
+        // Xử lý danh sách bài viết tìm được
+      } else {
+        print("No posts found with comment ID $postIDComment.");
+      }
+    } catch (error) {
+      print("Error querying posts: $error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var authState = Provider.of<UserProvider>(context);
@@ -214,21 +229,26 @@ class _ProfilePageState extends State<MyProfilePage>
                             Container(
                               width: 10,
                             ),
-                            Container(
-                              height: 40,
-                              width: 165,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Colors.grey,
-                                  width: 0.5,
+                            GestureDetector(
+                              onTap: () {
+                                getPostsByCommentID();
+                              },
+                              child: Container(
+                                height: 40,
+                                width: 165,
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.grey,
+                                    width: 0.5,
+                                  ),
                                 ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                "Share profile",
-                                style: TextStyle(color: Colors.white),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  "Share profile",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ),
                           ],

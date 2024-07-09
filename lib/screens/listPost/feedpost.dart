@@ -138,38 +138,6 @@ class _FeedPostState extends State<FeedPost> {
                 Container(
                   width: 5,
                 ),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz, color: Colors.white),
-                  onSelected: (String value) {
-                    if (value == 'Edit') {
-                      print('Edit');
-                    } else if (value == 'Delete') {
-                      try {
-                        print('Delete');
-                      } catch (e) {
-                        print('Failed to delete post: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Failed to delete post. Please try again.')),
-                        );
-                      }
-                    }
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return {'Edit', 'Delete'}.map((String choice) {
-                      return PopupMenuItem<String>(
-                        value: choice,
-                        child: Text(choice),
-                      );
-                    }).toList();
-                  },
-                  elevation: 10,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  offset: Offset(0, -10),
-                ),
               ],
             ),
             const SizedBox(height: 10),

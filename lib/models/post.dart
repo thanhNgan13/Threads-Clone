@@ -1,8 +1,37 @@
-// ignore_for_file: avoid_print
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_exercises/models/user.dart';
-import 'package:flutter/src/widgets/basic.dart';
+
+class InfoComment {
+  String postIDParent;
+  String postIDComment;
+  String userIDComment;
+  String content;
+
+  InfoComment({
+    required this.postIDParent,
+    required this.postIDComment,
+    required this.userIDComment,
+    required this.content,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'postIDParent': postIDParent,
+      'postIDComment': postIDComment,
+      'userIDComment': userIDComment,
+      'content': content,
+    };
+  }
+
+  factory InfoComment.fromJson(Map<String, dynamic> map) {
+    return InfoComment(
+      postIDParent: map['postIDParent'],
+      postIDComment: map['postIDComment'],
+      userIDComment: map['userIDComment'],
+      content: map['content'],
+    );
+  }
+}
 
 class PostModel {
   String? key;
@@ -14,6 +43,7 @@ class PostModel {
   List<String?>? likedUsers;
   int? commentsCount;
   String? keyReply;
+  List<InfoComment>? infoComments;
 
   PostModel({
     this.key,
@@ -25,18 +55,21 @@ class PostModel {
     this.likedUsers,
     this.commentsCount = 0,
     this.keyReply,
+    this.infoComments,
   });
 
-  toJson() {
+  Map<String, dynamic> toJson() {
     return {
-      "createdAt": createdAt,
-      "bio": bio,
-      "imagePath": imagePath,
-      "user": user == null ? null : user!.toJson(),
-      "likes": likes,
-      "likedUsers": likedUsers,
-      "commentsCount": commentsCount,
-      "keyReply": keyReply,
+      'createdAt': createdAt,
+      'bio': bio,
+      'imagePath': imagePath,
+      'user': user?.toJson(),
+      'likes': likes,
+      'likedUsers': likedUsers,
+      'commentsCount': commentsCount,
+      'keyReply': keyReply,
+      'infoComments':
+          infoComments?.map((infoComment) => infoComment.toJson()).toList(),
     };
   }
 
@@ -47,13 +80,13 @@ class PostModel {
     imagePath = map['imagePath'];
     user = UserModel.fromMap(map['user']);
     likes = map['likes'];
-    likedUsers = List<String>.from(map['likedUsers'] ??
-        []); // Khởi tạo danh sách người dùng đã like từ map hoặc mặc định là rỗng
+    likedUsers = List<String>.from(map['likedUsers'] ?? []);
     commentsCount = map['commentsCount'];
     keyReply = map['keyReply'];
+    infoComments = (map['infoComments'] as List<dynamic>?)
+        ?.map((infoCommentMap) => InfoComment.fromJson(infoCommentMap))
+        .toList();
   }
-
-  map(Stack Function(dynamic model) param0) {}
 
   factory PostModel.fromDocument(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -69,6 +102,9 @@ class PostModel {
           : [],
       commentsCount: data['commentsCount'],
       keyReply: data['keyReply'],
+      infoComments: (data['infoComments'] as List<dynamic>?)
+          ?.map((infoCommentMap) => InfoComment.fromJson(infoCommentMap))
+          .toList(),
     );
   }
 }

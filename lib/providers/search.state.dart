@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_exercises/models/post.dart';
 import 'package:final_exercises/models/user.dart';
+import 'package:final_exercises/services/post_service.dart';
 import 'app.state.dart';
 import 'package:final_exercises/helper/enum.dart';
 
@@ -13,27 +15,27 @@ class SearchState extends AppStates {
     return _userFilterlist != null ? List.from(_userFilterlist!) : null;
   }
 
-  Future<void> getDataFromFirestore() async {
-    try {
-      isBusy = true;
-      notifyListeners();
+  // Future<void> getDataFromFirestore() async {
+  //   try {
+  //     isBusy = true;
+  //     notifyListeners();
 
-      CollectionReference users =
-          FirebaseFirestore.instance.collection('users');
-      QuerySnapshot snapshot = await users.get();
+  //     CollectionReference users =
+  //         FirebaseFirestore.instance.collection('users');
+  //     QuerySnapshot snapshot = await users.get();
 
-      _userlist = snapshot.docs.map((doc) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
+  //     _userlist = snapshot.docs.map((doc) {
+  //       return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+  //     }).toList();
 
-      _userFilterlist = List.from(_userlist!);
-      isBusy = false;
-      notifyListeners();
-    } catch (error) {
-      isBusy = false;
-      print('Error getting user data: $error');
-    }
-  }
+  //     _userFilterlist = List.from(_userlist!);
+  //     isBusy = false;
+  //     notifyListeners();
+  //   } catch (error) {
+  //     isBusy = false;
+  //     print('Error getting user data: $error');
+  //   }
+  // }
 
   void filterByUsername(String? name) {
     if (name != null && name.isEmpty) {
@@ -84,4 +86,20 @@ class SearchState extends AppStates {
     final list = _userlist!.where((x) => userIds.contains(x.id)).toList();
     return list;
   }
+
+  List<InfoComment>? infoComments;
+
+  // Future<void> getDataFromFirestore(String userId) async {
+  //   isBusy = true;
+  //   notifyListeners();
+
+  //   try {
+  //     infoComments = await getInfoCommentsByUserID(userId);
+  //   } catch (e) {
+  //     print('Failed to load comments: $e');
+  //   }
+
+  //   isBusy = false;
+  //   notifyListeners();
+  // }
 }
